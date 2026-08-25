@@ -57,6 +57,8 @@ static void* monitoring_thread_function(void* arg);
 // ===== FUNCIONES DE CONFIGURACIÓN =====
 
 void load_config(void) {
+    pthread_mutex_lock(&mutex);
+
     // Valores predeterminados
     config.max_cpu_usage = 90.0;
     config.max_ram_usage = 80.0;
@@ -69,6 +71,7 @@ void load_config(void) {
     FILE *conf = fopen(CONFIG_PATH, "r");
     if (!conf) {
         printf("[INFO] No se encontró archivo de configuración, usando valores predeterminados\n");
+        pthread_mutex_unlock(&mutex);
         return;
     }
 
@@ -122,6 +125,8 @@ void load_config(void) {
     fclose(conf);
     printf("[INFO] Configuración cargada: CPU=%.1f%%, RAM=%.1f%%, Intervalo=%ds, Duración alerta=%ds\n",
            config.max_cpu_usage, config.max_ram_usage, config.check_interval, config.alert_duration);
+
+    pthread_mutex_unlock(&mutex);
 }
 
 /**
@@ -134,7 +139,9 @@ void load_config(void) {
  */
 void update_cpu_threshold(float new_threshold) {
     if (new_threshold > 0 && new_threshold <= 100) {
+        pthread_mutex_lock(&mutex);
         config.max_cpu_usage = new_threshold;
+        pthread_mutex_unlock(&mutex);
         // CAMBIO: Eliminado printf("[INFO] Umbral de CPU actualizado a %.1f%%\n", new_threshold);
         // Se mantiene solo el logging estructurado interno
         save_config(); // Persistir cambios
@@ -150,7 +157,9 @@ void update_cpu_threshold(float new_threshold) {
  */
 void update_memory_threshold(float new_threshold) {
     if (new_threshold > 0 && new_threshold <= 100) {
+        pthread_mutex_lock(&mutex);
         config.max_ram_usage = new_threshold;
+        pthread_mutex_unlock(&mutex);
         // CAMBIO: Eliminado printf("[INFO] Umbral de memoria actualizado a %.1f%%\n", new_threshold);
         save_config(); // Persistir cambios
     }
@@ -170,9 +179,12 @@ Config* get_config() {
  * Mantiene persistencia entre sesiones
  */
 void save_config(void) {
+    pthread_mutex_lock(&mutex);
+
     FILE *conf = fopen(CONFIG_PATH, "w");
     if (!conf) {
         printf("[ERROR] No se pudo abrir %s para escritura\n", CONFIG_PATH);
+        pthread_mutex_unlock(&mutex);
         return;
     }
 
@@ -181,7 +193,7 @@ void save_config(void) {
     fprintf(conf, "UMBRAL_RAM=%.1f\n", config.max_ram_usage);
     fprintf(conf, "INTERVALO=%d\n", config.check_interval);
     fprintf(conf, "DURACION_ALERTA=%d\n", config.alert_duration);
-    
+
     // Escribir la whitelist
     fprintf(conf, "WHITELIST=");
     for (int i = 0; i < config.num_white_processes; i++) {
@@ -194,6 +206,8 @@ void save_config(void) {
 
     fclose(conf);
     printf("[INFO] Configuración guardada en %s\n", CONFIG_PATH);
+
+    pthread_mutex_unlock(&mutex);
 }
 
 // ===== FUNCIONES DE INFORMACIÓN DE PROCESOS =====

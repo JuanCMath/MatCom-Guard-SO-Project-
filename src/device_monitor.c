@@ -12,10 +12,19 @@
  * @param interval_seconds: Intervalo en segundos entre cada verificación
  * @return DeviceList*: Puntero a estructura con lista de dispositivos conectados
  */
-DeviceList* monitor_connected_devices() {
+DeviceList* monitor_connected_devices(void) {
     // Inicializar la estructura de lista de dispositivos
     DeviceList *device_list = malloc(sizeof(DeviceList));
+    if (!device_list) {
+        perror("Error al asignar memoria para la lista de dispositivos");
+        return NULL;
+    }
     device_list->devices = malloc(10 * sizeof(char*)); // Capacidad inicial de 10 dispositivos
+    if (!device_list->devices) {
+        perror("Error al asignar memoria para el array de dispositivos");
+        free(device_list);
+        return NULL;
+    }
     device_list->count = 0;
     device_list->capacity = 10;
     
@@ -55,13 +64,22 @@ DeviceList* monitor_connected_devices() {
             if (stat(full_path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
                 // Verificar si necesitamos expandir el array
                 if (device_list->count >= device_list->capacity) {
-                    device_list->capacity *= 2;
-                    device_list->devices = realloc(device_list->devices, 
-                                                 device_list->capacity * sizeof(char*));
+                    int new_capacity = device_list->capacity * 2;
+                    char **temp = realloc(device_list->devices, new_capacity * sizeof(char*));
+                    if (!temp) {
+                        perror("Error al expandir la lista de dispositivos");
+                        break; // Conservar los dispositivos ya detectados
+                    }
+                    device_list->devices = temp;
+                    device_list->capacity = new_capacity;
                 }
-                
+
                 // Agregar el dispositivo a la lista
                 device_list->devices[device_list->count] = malloc(strlen(entry->d_name) + 1);
+                if (!device_list->devices[device_list->count]) {
+                    perror("Error al asignar memoria para nombre de dispositivo");
+                    continue;
+                }
                 strcpy(device_list->devices[device_list->count], entry->d_name);
                 device_list->count++;
                 
@@ -198,27 +216,41 @@ int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path) {
         }
         
         snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
-        
-        if (stat(full_path, &file_stat) != 0) {
+
+        // lstat (no stat) para no seguir symlinks: un enlace simbólico que
+        // apunte a un ancestro del propio árbol causaría recursión infinita
+        if (lstat(full_path, &file_stat) != 0) {
             continue; // Error al obtener información del archivo
         }
-        
-        if (S_ISDIR(file_stat.st_mode)) {
+
+        if (S_ISLNK(file_stat.st_mode)) {
+            continue; // No seguir enlaces simbólicos
+        } else if (S_ISDIR(file_stat.st_mode)) {
             // Es un directorio, escanear recursivamente
             scan_directory_recursive(snapshot, full_path);
         } else if (S_ISREG(file_stat.st_mode)) {
             // Es un archivo regular, almacenar información
-            
+
             // Verificar si necesitamos expandir el array
             if (snapshot->file_count >= snapshot->capacity) {
-                snapshot->capacity *= 2;
-                snapshot->files = realloc(snapshot->files, 
-                                        snapshot->capacity * sizeof(FileInfo*));
+                int new_capacity = snapshot->capacity * 2;
+                FileInfo **temp = realloc(snapshot->files, new_capacity * sizeof(FileInfo*));
+                if (!temp) {
+                    perror("Error al expandir el array de archivos del snapshot");
+                    closedir(dir);
+                    return -1;
+                }
+                snapshot->files = temp;
+                snapshot->capacity = new_capacity;
             }
-            
+
             // Crear nueva entrada de archivo
             FileInfo *file_info = malloc(sizeof(FileInfo));
-            
+            if (!file_info) {
+                perror("Error al asignar memoria para información de archivo");
+                continue;
+            }
+
             // Almacenar información básica
             file_info->path = strdup(full_path);
             file_info->name = strdup(entry->d_name);

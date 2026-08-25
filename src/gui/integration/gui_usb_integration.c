@@ -116,6 +116,8 @@ typedef struct {
     pthread_t monitoring_thread;        ///< Hilo de monitoreo automático
     pthread_mutex_t state_mutex;        ///< Mutex para proteger acceso concurrente
     volatile int should_stop_monitoring; ///< Señal atómica para detener el monitoreo (0/1)
+    int last_scan_files_changed;        ///< Suma de archivos +/-/~ del último escaneo profundo
+    int last_scan_suspicious_devices;   ///< Dispositivos sospechosos detectados en el último escaneo profundo
 } USBIntegrationState;
 
 /**
@@ -136,6 +138,8 @@ static USBIntegrationState usb_state = {
     .scan_interval_seconds = 30,        // 30 segundos entre escaneos automáticos
     .deep_scan_enabled = 0,             // Escaneo profundo deshabilitado por defecto
     .should_stop_monitoring = 0,        // Continuar monitoreo
+    .last_scan_files_changed = 0,       // Sin escaneos profundos realizados aún
+    .last_scan_suspicious_devices = 0,  // Sin escaneos profundos realizados aún
     .state_mutex = PTHREAD_MUTEX_INITIALIZER // Mutex inicializado estáticamente
 };
 
@@ -167,8 +171,7 @@ static void* usb_monitoring_thread_function(void* arg) {
         
         // Obtener la lista actual de dispositivos conectados
         // Esta función del backend escanea /media para encontrar dispositivos montados
-        // Usar timeout corto para ser más responsivo a señales de parada
-        current_devices = monitor_connected_devices(1); // 1 segundo de timeout
+        current_devices = monitor_connected_devices();
         
         // Verificar señal de parada después de operación potencialmente bloqueante
         if (usb_state.should_stop_monitoring) {
@@ -379,7 +382,7 @@ int perform_manual_usb_scan(void) {
                      "Iniciando escaneo manual de dispositivos USB");
     
     // Obtener lista de dispositivos conectados
-    DeviceList* devices = monitor_connected_devices(5); // 5 segundos timeout
+    DeviceList* devices = monitor_connected_devices();
     int devices_scanned = 0;
     
     if (devices) {
@@ -409,8 +412,8 @@ int perform_manual_usb_scan(void) {
     }
     
     // Actualizar estadísticas en la GUI después del escaneo
-    int total_devices, suspicious_devices, total_files;
-    if (get_usb_statistics_for_gui(&total_devices, &suspicious_devices, &total_files) == 0) {
+    int total_devices, suspicious_devices, total_files, files_with_changes;
+    if (get_usb_statistics_for_gui(&total_devices, &suspicious_devices, &total_files, &files_with_changes) == 0) {
         gui_update_statistics(total_devices, 0, 0); // 0 para procesos y puertos por ahora
     }
     
@@ -663,7 +666,7 @@ int sync_gui_with_usb_devices(void) {
                      "Sincronizando vista GUI con dispositivos USB conectados");
     
     // Obtener la lista actual de dispositivos
-    DeviceList* devices = monitor_connected_devices(3);
+    DeviceList* devices = monitor_connected_devices();
     int devices_synced = 0;
     
     if (devices) {
@@ -764,7 +767,7 @@ int refresh_usb_snapshots(void) {
     gui_add_log_entry("USB_REFRESH", "INFO", 
                      "🔄 Iniciando actualización de snapshots USB");
 
-    DeviceList* devices = monitor_connected_devices(2);
+    DeviceList* devices = monitor_connected_devices();
     int devices_updated = 0;
 
     if (devices && devices->count > 0) {
@@ -895,8 +898,10 @@ int deep_scan_usb_devices(void) {
     gui_add_log_entry("USB_DEEP_SCAN", "INFO", 
                      "🔍 Iniciando escaneo profundo de dispositivos USB");
 
-    DeviceList* devices = monitor_connected_devices(2);
+    DeviceList* devices = monitor_connected_devices();
     int devices_analyzed = 0;
+    int total_files_changed = 0;
+    int total_suspicious_devices = 0;
 
     if (devices && devices->count > 0) {
         for (int i = 0; i < devices->count; i++) {
@@ -952,9 +957,11 @@ int deep_scan_usb_devices(void) {
                         gui_update_usb_device(&gui_device);
                     }
                     
+                    total_files_changed += files_added + files_modified + files_deleted;
                     if (is_suspicious) {
-                        snprintf(log_msg, sizeof(log_msg), 
-                                "🚨 ACTIVIDAD SOSPECHOSA en %s: +%d archivos, ~%d modificados, -%d eliminados", 
+                        total_suspicious_devices++;
+                        snprintf(log_msg, sizeof(log_msg),
+                                "🚨 ACTIVIDAD SOSPECHOSA en %s: +%d archivos, ~%d modificados, -%d eliminados",
                                 devices->devices[i], files_added, files_modified, files_deleted);
                         gui_add_log_entry("USB_DEEP_SCAN", "ALERT", log_msg);
                     } else if (files_added + files_modified + files_deleted > 0) {
@@ -989,51 +996,53 @@ int deep_scan_usb_devices(void) {
 
     pthread_mutex_lock(&usb_state.state_mutex);
     usb_state.scan_in_progress = 0;
+    usb_state.last_scan_files_changed = total_files_changed;
+    usb_state.last_scan_suspicious_devices = total_suspicious_devices;
     pthread_mutex_unlock(&usb_state.state_mutex);
 
     char completion_msg[256];
-    snprintf(completion_msg, sizeof(completion_msg), 
+    snprintf(completion_msg, sizeof(completion_msg),
              "🔍 Escaneo profundo completado: %d dispositivos analizados", devices_analyzed);
     gui_add_log_entry("USB_DEEP_SCAN", "INFO", completion_msg);
 
     return devices_analyzed;
 }
 
-int get_usb_statistics_for_gui(int *total_devices, int *suspicious_devices, int *total_files) {
-    if (!total_devices || !suspicious_devices || !total_files) {
+int get_usb_statistics_for_gui(int *total_devices, int *suspicious_devices,
+                               int *total_files, int *files_with_changes) {
+    if (!total_devices || !suspicious_devices || !total_files || !files_with_changes) {
         return -1;
     }
-    
+
     *total_devices = 0;
     *suspicious_devices = 0;
     *total_files = 0;
-    
+    *files_with_changes = 0;
+
     // Obtener lista de dispositivos actuales
-    DeviceList* devices = monitor_connected_devices(2);
-    
+    DeviceList* devices = monitor_connected_devices();
+
     if (devices) {
         *total_devices = devices->count;
-        
-        // Para cada dispositivo, verificar su estado en el cache
+
+        // El total de archivos se calcula sobre los snapshots de referencia actuales;
+        // los cambios/sospecha se toman del último escaneo profundo (único momento
+        // en que realmente se compara contra un snapshot anterior)
         for (int i = 0; i < devices->count; i++) {
             DeviceSnapshot* snapshot = get_cached_usb_snapshot(devices->devices[i]);
             if (snapshot) {
                 *total_files += snapshot->file_count;
-                
-                // Evaluar si es sospechoso basándose en cambios recientes
-                // Esto requiere comparar con un snapshot anterior
-                GUIUSBDevice gui_device;
-                if (adapt_device_snapshot_to_gui(snapshot, NULL, &gui_device) == 0) {
-                    if (gui_device.is_suspicious) {
-                        (*suspicious_devices)++;
-                    }
-                }
             }
         }
-        
+
         free_device_list(devices);
     }
-    
+
+    pthread_mutex_lock(&usb_state.state_mutex);
+    *suspicious_devices = usb_state.last_scan_suspicious_devices;
+    *files_with_changes = usb_state.last_scan_files_changed;
+    pthread_mutex_unlock(&usb_state.state_mutex);
+
     return 0;
 }
 

@@ -40,7 +40,7 @@ test: $(TARGET)
 	./$(TARGET)
 
 debug: $(SRC)
-	$(CC) $(CFLAGS) -DDEBUG -o $(TARGET)_debug $(SRC) $(GTK_FLAGS) $(LIBS)
+	$(CC) $(CFLAGS) -DDEBUG -o $(TARGET)_debug $(SRC) $(GTK_FLAGS) $(CAIRO_FLAGS) $(LIBS)
 
 check-deps:
 	@echo "Verificando dependencias..."

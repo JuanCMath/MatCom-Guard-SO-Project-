@@ -41,7 +41,7 @@ typedef struct {
 } DeviceSnapshot;
 
 // Funciones para monitoreo de dispositivos
-DeviceList* monitor_connected_devices();
+DeviceList* monitor_connected_devices(void);
 void free_device_list(DeviceList *device_list);
 
 // Funciones para manejo de archivos y snapshots

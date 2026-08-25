@@ -184,9 +184,11 @@ int sync_gui_with_usb_devices(void);
  * @param total_devices Puntero donde almacenar el total de dispositivos
  * @param suspicious_devices Puntero donde almacenar dispositivos sospechosos
  * @param total_files Puntero donde almacenar el total de archivos monitoreados
+ * @param files_with_changes Puntero donde almacenar archivos con cambios en el último escaneo profundo
  * @return int 0 si es exitoso, -1 si error
  */
-int get_usb_statistics_for_gui(int *total_devices, int *suspicious_devices, int *total_files);
+int get_usb_statistics_for_gui(int *total_devices, int *suspicious_devices,
+                               int *total_files, int *files_with_changes);
 
 /**
  * @brief Actualiza la configuración del monitoreo USB desde la GUI

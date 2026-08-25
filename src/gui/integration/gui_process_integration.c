@@ -212,8 +212,8 @@ void on_gui_process_terminated(pid_t pid, const char *name) {
     gui_add_log_entry("PROCESS_MONITOR", "INFO", log_msg);
     
     // Actualizar estadísticas después de la terminación del proceso
-    int total, high_cpu, high_mem;
-    if (get_process_statistics_for_gui(&total, &high_cpu, &high_mem) == 0) {
+    int total, high_cpu, high_mem, suspicious;
+    if (get_process_statistics_for_gui(&total, &high_cpu, &high_mem, &suspicious) == 0) {
         // Como no tenemos el número de puertos disponible aquí, 
         // usamos el último valor conocido (0 por simplicidad)
         gui_update_statistics(0, total, 0);
@@ -334,18 +334,20 @@ int sync_gui_with_backend_processes(void) {
     return process_count;
 }
 
-int get_process_statistics_for_gui(int *total_processes, int *high_cpu_count, int *high_memory_count) {
-    if (!total_processes || !high_cpu_count || !high_memory_count) {
+int get_process_statistics_for_gui(int *total_processes, int *high_cpu_count,
+                                   int *high_memory_count, int *suspicious_count) {
+    if (!total_processes || !high_cpu_count || !high_memory_count || !suspicious_count) {
         return -1;
     }
-    
+
     // Obtener estadísticas del backend usando su interfaz thread-safe
     MonitoringStats stats = get_monitoring_stats();
-    
+
     *total_processes = stats.total_processes;
     *high_cpu_count = stats.high_cpu_count;
     *high_memory_count = stats.high_memory_count;
-    
+    *suspicious_count = stats.active_alerts;
+
     return 0;
 }
 
@@ -420,8 +422,8 @@ void gui_compatible_scan_processes(void) {
     }
     
     // Actualizar estadísticas en la GUI
-    int total, high_cpu, high_mem;
-    if (get_process_statistics_for_gui(&total, &high_cpu, &high_mem) == 0) {
+    int total, high_cpu, high_mem, suspicious;
+    if (get_process_statistics_for_gui(&total, &high_cpu, &high_mem, &suspicious) == 0) {
         gui_update_statistics(0, total, 0); // 0 para USB y puertos por ahora
     }
 }

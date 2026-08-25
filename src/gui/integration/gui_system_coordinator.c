@@ -416,11 +416,12 @@ int update_aggregate_statistics(void) {
     int total_modules = 3;
     
     // Recopilar estadísticas de procesos
-    int processes_monitored = 0, high_cpu = 0, high_mem = 0;
-    if (get_process_statistics_for_gui(&processes_monitored, &high_cpu, &high_mem) == 0) {
+    int processes_monitored = 0, high_cpu = 0, high_mem = 0, suspicious_processes = 0;
+    if (get_process_statistics_for_gui(&processes_monitored, &high_cpu, &high_mem, &suspicious_processes) == 0) {
         global_state.aggregate_stats.total_processes_monitored = processes_monitored;
         global_state.aggregate_stats.processes_exceeding_cpu_threshold = high_cpu;
         global_state.aggregate_stats.processes_exceeding_memory_threshold = high_mem;
+        global_state.aggregate_stats.suspicious_processes = suspicious_processes;
         global_state.aggregate_stats.last_process_scan = time(NULL);
         
         // Actualizar estado del módulo de procesos
@@ -436,11 +437,12 @@ int update_aggregate_statistics(void) {
     }
     
     // Recopilar estadísticas de USB
-    int usb_devices = 0, suspicious_usb = 0, total_files = 0;
-    if (get_usb_statistics_for_gui(&usb_devices, &suspicious_usb, &total_files) == 0) {
+    int usb_devices = 0, suspicious_usb = 0, total_files = 0, files_with_changes = 0;
+    if (get_usb_statistics_for_gui(&usb_devices, &suspicious_usb, &total_files, &files_with_changes) == 0) {
         global_state.aggregate_stats.total_usb_devices = usb_devices;
         global_state.aggregate_stats.suspicious_usb_devices = suspicious_usb;
         global_state.aggregate_stats.total_files_monitored = total_files;
+        global_state.aggregate_stats.files_with_changes = files_with_changes;
         global_state.aggregate_stats.last_usb_scan = time(NULL);
         
         // Actualizar estado del módulo USB

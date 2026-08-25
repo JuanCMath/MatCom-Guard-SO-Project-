@@ -24,7 +24,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdint.h>
+#include <pthread.h>
 #include <cairo.h>      // Librería para generación de PDFs
 #include <cairo-pdf.h>  // Extensión específica para PDFs
 
@@ -40,6 +40,10 @@ typedef struct USBSnapshotCache {
 } USBSnapshotCache;
 
 static USBSnapshotCache *cache_head = NULL;
+// Protege la lista enlazada del cache: el escaneo USB corre en su propio
+// hilo mientras el coordinador la consulta desde otro, sin este mutex la
+// lista puede corromperse por escrituras/lecturas concurrentes.
+static pthread_mutex_t cache_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // ============================================================================
 // ADAPTADORES DE ESTRUCTURAS DE DATOS
@@ -98,19 +102,7 @@ int adapt_device_snapshot_to_gui(const DeviceSnapshot *snapshot,                
         fprintf(stderr, "Error: snapshot->device_name es NULL\n");
         return -1;
     }
-    
-    // Validar que la dirección de memory esté en un rango razonable
-    uintptr_t addr = (uintptr_t)snapshot->device_name;
-    if (addr < 0x1000 || addr > 0x7fffffffffff) {
-        fprintf(stderr, "Error: snapshot->device_name tiene dirección sospechosa: %p\n", 
-                (void*)snapshot->device_name);
-        return -1;
-    }
-    
-    // Intentar acceder al primer byte de forma segura
-    char first_char;
-    __builtin_memcpy(&first_char, snapshot->device_name, 1);
-    
+
     // Validar que device_name sea una cadena válida (máximo 255 caracteres)
     size_t name_len = strnlen(snapshot->device_name, 256);
     if (name_len >= 256) {
@@ -306,7 +298,9 @@ int store_usb_snapshot(const char *device_name, const DeviceSnapshot *snapshot) 
     if (!device_name || !snapshot) {
         return -1;
     }
-    
+
+    pthread_mutex_lock(&cache_mutex);
+
     // Buscar si ya existe una entrada para este dispositivo
     USBSnapshotCache *current = cache_head;
     while (current) {
@@ -316,23 +310,26 @@ int store_usb_snapshot(const char *device_name, const DeviceSnapshot *snapshot) 
                 free_device_snapshot(current->snapshot);
             }
             current->snapshot = (DeviceSnapshot*)snapshot;  // Cast para eliminar const
+            pthread_mutex_unlock(&cache_mutex);
             return 0;
         }
         current = current->next;
     }
-    
+
     // Crear nueva entrada en el cache
     USBSnapshotCache *new_entry = malloc(sizeof(USBSnapshotCache));
     if (!new_entry) {
+        pthread_mutex_unlock(&cache_mutex);
         return -1;
     }
-    
+
     strncpy(new_entry->device_name, device_name, sizeof(new_entry->device_name) - 1);
     new_entry->device_name[sizeof(new_entry->device_name) - 1] = '\0';
     new_entry->snapshot = (DeviceSnapshot*)snapshot;  // Cast para eliminar const
     new_entry->next = cache_head;
     cache_head = new_entry;
-    
+
+    pthread_mutex_unlock(&cache_mutex);
     return 0;
 }
 
@@ -340,19 +337,26 @@ DeviceSnapshot* get_cached_usb_snapshot(const char *device_name) {
     if (!device_name) {
         return NULL;
     }
-    
+
+    pthread_mutex_lock(&cache_mutex);
+
     USBSnapshotCache *current = cache_head;
     while (current) {
         if (strcmp(current->device_name, device_name) == 0) {
-            return current->snapshot;
+            DeviceSnapshot *snapshot = current->snapshot;
+            pthread_mutex_unlock(&cache_mutex);
+            return snapshot;
         }
         current = current->next;
     }
-    
+
+    pthread_mutex_unlock(&cache_mutex);
     return NULL;
 }
 
 void cleanup_usb_snapshot_cache(void) {
+    pthread_mutex_lock(&cache_mutex);
+
     USBSnapshotCache *current = cache_head;
     while (current) {
         USBSnapshotCache *next = current->next;
@@ -363,6 +367,8 @@ void cleanup_usb_snapshot_cache(void) {
         current = next;
     }
     cache_head = NULL;
+
+    pthread_mutex_unlock(&cache_mutex);
 }
 
 // ============================================================================
@@ -590,9 +596,10 @@ void gui_export_report_to_pdf(const char *filename) {
         cairo_surface_t *surface = cairo_pdf_surface_create(filename, 595, 842);
         if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS) {
             printf("Error: No se pudo crear la superficie PDF\n");
+            cairo_surface_destroy(surface);  // Incluso en fallo, Cairo devuelve un objeto "nil" que hay que liberar
             g_free(log_content);
             return;
-        }        
+        }
         // Crear contexto de dibujo Cairo con validación de errores
         cairo_t *cr = cairo_create(surface);
         if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {

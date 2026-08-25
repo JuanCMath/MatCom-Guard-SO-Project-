@@ -143,9 +143,11 @@ int sync_gui_with_backend_processes(void);
  * @param total_processes Puntero donde almacenar el total de procesos monitoreados
  * @param high_cpu_count Puntero donde almacenar el número de procesos con alta CPU
  * @param high_memory_count Puntero donde almacenar el número de procesos con alta memoria
+ * @param suspicious_count Puntero donde almacenar el número de procesos con alerta activa
  * @return int 0 si es exitoso, -1 si error
  */
-int get_process_statistics_for_gui(int *total_processes, int *high_cpu_count, int *high_memory_count);
+int get_process_statistics_for_gui(int *total_processes, int *high_cpu_count,
+                                   int *high_memory_count, int *suspicious_count);
 
 /**
  * @brief Actualiza la configuración del monitor de procesos desde la GUI

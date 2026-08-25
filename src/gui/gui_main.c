@@ -28,6 +28,8 @@ static void on_window_destroy(GtkWidget *widget, gpointer data);
 static int initialize_complete_backend_system(void);
 static void cleanup_complete_backend_system(void);
 static void intelligent_system_sync(void);
+static gboolean gui_set_scanning_status_timeout(gpointer user_data);
+static gboolean intelligent_system_sync_timeout(gpointer user_data);
 
 static void on_window_destroy(GtkWidget *widget __attribute__((unused)), gpointer data __attribute__((unused))) {
     gui_add_log_entry("SISTEMA", "INFO", "Cerrando MatCom Guard - iniciando secuencia de apagado seguro...");
@@ -92,7 +94,15 @@ static void on_scan_all_clicked(GtkMenuItem *item __attribute__((unused)), gpoin
     if (processes_callback) processes_callback();
     if (ports_callback) ports_callback();
     
-    g_timeout_add_seconds(5, (GSourceFunc)gui_set_scanning_status, GINT_TO_POINTER(FALSE));
+    g_timeout_add_seconds(5, gui_set_scanning_status_timeout, GINT_TO_POINTER(FALSE));
+}
+
+// Wrapper con firma gboolean(gpointer) requerida por g_timeout_add_seconds;
+// gui_set_scanning_status() devuelve void, así que un cast directo a
+// GSourceFunc dejaría el valor de retorno leído por GLib indefinido.
+static gboolean gui_set_scanning_status_timeout(gpointer user_data) {
+    gui_set_scanning_status(GPOINTER_TO_INT(user_data));
+    return G_SOURCE_REMOVE;
 }
 
 static void on_scan_usb_menu_clicked(GtkMenuItem *item __attribute__((unused)), gpointer data __attribute__((unused))) {
@@ -474,11 +484,19 @@ void init_gui(int argc, char **argv) {
         gui_add_log_entry("STARTUP", "INFO", "🎉 MatCom Guard completamente inicializado y operativo");
         
         // Realizar sincronización inicial después de un breve delay
-        g_timeout_add_seconds(3, (GSourceFunc)intelligent_system_sync, NULL);
+        g_timeout_add_seconds(3, intelligent_system_sync_timeout, NULL);
     }
-    
+
     // Iniciar el bucle principal de GTK
     gtk_main();
+}
+
+// Wrapper con firma gboolean(gpointer) requerida por g_timeout_add_seconds;
+// ver gui_set_scanning_status_timeout() más arriba para la misma razón.
+static gboolean intelligent_system_sync_timeout(gpointer user_data) {
+    (void)user_data;
+    intelligent_system_sync();
+    return G_SOURCE_REMOVE;
 }
 
 void gui_set_scan_callbacks(
