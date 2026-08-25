@@ -332,15 +332,7 @@ void free_device_snapshot(DeviceSnapshot *snapshot) {
     if (snapshot == NULL) {
         return;
     }
-    
-    // Verificar que el puntero esté en un rango de memoria razonable
-    uintptr_t addr = (uintptr_t)snapshot;
-    if (addr < 0x1000 || addr > 0x7fffffffffff) {
-        printf("Warning: Intentando liberar snapshot con dirección sospechosa: %p\n", 
-               (void*)snapshot);
-        return;
-    }
-    
+
     // Liberar información de cada archivo de forma segura
     if (snapshot->files != NULL && snapshot->file_count > 0) {
         for (int i = 0; i < snapshot->file_count; i++) {

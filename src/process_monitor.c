@@ -13,8 +13,6 @@
 // ===== VARIABLES GLOBALES =====
 
 Config config;
-ProcessInfo *procesos = NULL;
-int num_procesos = 0;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 FILE *log_file = NULL;
 

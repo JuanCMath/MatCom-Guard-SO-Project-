@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Build output
+/matcom-guard
+/matcom-guard_debug
+*.pdf
+!MatCom Guard_Aclaraciones.pdf
