@@ -1,4 +1,6 @@
-# 🛡️ MatCom Guard - Sistema de Monitoreo y Seguridad
+# 🛡️ MatCom Guard - System Monitoring and Security
+
+🇬🇧 English (you are here) · 🇪🇸 [Leer en español](README.es.md)
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Platform](https://img.shields.io/badge/platform-Linux-blue)]()
@@ -7,138 +9,138 @@
 [![GTK](https://img.shields.io/badge/GUI-GTK%2B3-purple)]()
 [![Language](https://img.shields.io/badge/language-C99-blue)]()
 
-> *En este vasto reino digital, los virus y amenazas informáticas son como plagas y ejércitos invasores que buscan corromper tus tierras y saquear tus recursos. MatCom Guard es tu muralla y tu guardia real, un sistema de monitoreo y seguridad en tiempo real diseñado para vigilar y proteger tu reino (sistema UNIX/Linux) de cualquier intruso o actividad sospechosa.*
+> *In this vast digital realm, computer viruses and threats are like plagues and invading armies seeking to corrupt your lands and plunder your resources. MatCom Guard is your wall and your royal guard, a real-time monitoring and security system designed to watch over and protect your realm (a UNIX/Linux system) from any intruder or suspicious activity.*
 
-## 🌟 Características Destacadas
+## 🌟 Highlighted Features
 
-- **🔒 Monitoreo Integral en Tiempo Real**: USB, procesos y puertos de red
-- **🎯 Funcionalidad USB Diferenciada**: Sistema único de snapshots y detección avanzada
-- **⚡ Interfaz Gráfica Moderna**: GUI basada en GTK+3 con dashboard centralizado
-- **🧠 Análisis Inteligente**: Heurísticas avanzadas de detección de amenazas
-- **📊 Exportación Profesional**: Reportes PDF con gráficos integrados
-- **🔧 Configuración Flexible**: Umbrales personalizables y auto-escaneo
-- **🛡️ Thread-Safe Architecture**: Robusto sistema multi-hilo
+- **🔒 Comprehensive Real-Time Monitoring**: USB, processes, and network ports
+- **🎯 Differentiated USB Functionality**: a unique snapshot and advanced-detection system
+- **⚡ Modern Graphical Interface**: GTK+3-based GUI with a centralized dashboard
+- **🧠 Intelligent Analysis**: advanced threat-detection heuristics
+- **📊 Professional Export**: PDF reports with embedded charts
+- **🔧 Flexible Configuration**: customizable thresholds and auto-scan
+- **🛡️ Thread-Safe Architecture**: a robust multi-threaded system
 
-## 📋 Tabla de Contenidos
+## 📋 Table of Contents
 
-- [🌟 Características Destacadas](#-características-destacadas)
-- [⚡ Vista Rápida](#-vista-rápida)
-- [🏗️ Arquitectura del Sistema](#️-arquitectura-del-sistema)
-- [🛠️ Instalación y Compilación](#️-instalación-y-compilación)
-- [📖 Guía de Uso](#-guía-de-uso)
-- [🔧 Funcionalidades Avanzadas](#-funcionalidades-avanzadas)
-- [📚 Documentación Técnica](#-documentación-técnica)
-- [🔧 Resolución de Problemas](#-resolución-de-problemas)
-- [🤝 Contribución](#-contribución)
-- [📜 Licencia y Créditos](#-licencia-y-créditos)
+- [🌟 Highlighted Features](#-highlighted-features)
+- [⚡ Quick View](#-quick-view)
+- [🏗️ System Architecture](#️-system-architecture)
+- [🛠️ Installation and Build](#️-installation-and-build)
+- [📖 Usage Guide](#-usage-guide)
+- [🔧 Advanced Features](#-advanced-features)
+- [📚 Technical Documentation](#-technical-documentation)
+- [🔧 Troubleshooting](#-troubleshooting)
+- [🤝 Contributing](#-contributing)
+- [📜 License and Credits](#-license-and-credits)
 
-## ⚡ Vista Rápida
+## ⚡ Quick View
 
 ```bash
-# Compilación rápida
+# Quick build
 make clean && make
 
-# Ejecución
+# Run
 ./matcom-guard
 
-# Verificar dependencias
+# Check dependencies
 make check-deps
 ```
 
-**Funciones principales disponibles inmediatamente:**
-- 🔍 **Monitor USB**: Detección automática de dispositivos y análisis forense
-- ⚡ **Monitor Procesos**: Alertas de CPU/memoria en tiempo real
-- 🔌 **Escáner Puertos**: Escaneo rápido (1-1024) y completo (1-65535)
-- 📊 **Dashboard**: Vista consolidada del estado del sistema
-- 📄 **Exportar PDF**: Reportes profesionales con un clic
-- ⚙️ **Configuración**: Archivo `matcomguard.conf` para personalización
+**Main functions available right away:**
+- 🔍 **USB Monitor**: automatic device detection and forensic analysis
+- ⚡ **Process Monitor**: real-time CPU/memory alerts
+- 🔌 **Port Scanner**: quick scan (1-1024) and full scan (1-65535)
+- 📊 **Dashboard**: a consolidated view of system status
+- 📄 **Export PDF**: professional reports with one click
+- ⚙️ **Configuration**: `matcomguard.conf` file for customization
 
-## 🏗️ Arquitectura del Sistema
+## 🏗️ System Architecture
 
-MatCom Guard está construido con una arquitectura moderna de 3 capas que garantiza escalabilidad, mantenibilidad y robustez:
+MatCom Guard is built with a modern 3-layer architecture that ensures scalability, maintainability, and robustness:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    CAPA PRESENTACIÓN                        │
+│                   PRESENTATION LAYER                         │
 │  ┌─────────────────┬─────────────────┬─────────────────┐    │
-│  │   Dashboard     │   Paneles       │   Reportes      │    │
-│  │   Principal     │   Específicos   │   PDF/Logs      │    │
+│  │   Main           │   Specific       │   PDF/Log       │    │
+│  │   Dashboard       │   Panels         │   Reports       │    │
 │  └─────────────────┴─────────────────┴─────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                 CAPA INTEGRACIÓN                            │
+│                   INTEGRATION LAYER                          │
 │  ┌─────────────────┬─────────────────┬─────────────────┐    │
-│  │  GUI-Backend    │   Coordinador   │   Adaptadores   │    │
-│  │   Adapters      │    Sistema      │    Datos        │    │
+│  │  GUI-Backend    │   System         │   Data           │    │
+│  │   Adapters      │   Coordinator    │   Adapters       │    │
 │  └─────────────────┴─────────────────┴─────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                   CAPA BACKEND                              │
+│                     BACKEND LAYER                             │
 │  ┌─────────────────┬─────────────────┬─────────────────┐    │
-│  │   Monitor       │   Monitor       │   Escáner       │    │
-│  │     USB         │   Procesos      │   Puertos       │    │
+│  │   USB             │   Process        │   Port           │    │
+│  │   Monitor          │   Monitor        │   Scanner        │    │
 │  └─────────────────┴─────────────────┴─────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 🧩 Componentes Clave
+### 🧩 Key Components
 
-#### **📊 Dashboard Centralizado**
-- **Vista unificada** de todos los módulos del sistema
-- **Estadísticas en tiempo real** de dispositivos, procesos y puertos
-- **Estado global del sistema** con indicadores visuales de salud
-- **Acceso rápido** a todas las funcionalidades principales
+#### **📊 Centralized Dashboard**
+- **Unified view** of every system module
+- **Real-time statistics** on devices, processes, and ports
+- **Global system status** with visual health indicators
+- **Quick access** to every main feature
 
-#### **💾 Sistema USB Avanzado**
+#### **💾 Advanced USB System**
 ```c
 typedef struct {
-    char *device_name;          // Identificador único del dispositivo
-    FileInfo **files;           // Array dinámico de archivos analizados
-    int file_count;             // Contador de archivos en el snapshot
-    time_t snapshot_time;       // Timestamp de creación del snapshot
-    char sha256_hashes[64];     // Hashes criptográficos para integridad
+    char *device_name;          // Unique device identifier
+    FileInfo **files;           // Dynamic array of analyzed files
+    int file_count;             // File count in the snapshot
+    time_t snapshot_time;       // Snapshot creation timestamp
+    char sha256_hashes[64];     // Cryptographic hashes for integrity
 } DeviceSnapshot;
 ```
 
-**Funcionalidad Diferenciada:**
-- **🔄 Botón "Actualizar"**: ÚNICO capaz de retomar snapshots de referencia
-- **🔍 Botón "Escaneo Profundo"**: Análisis comparativo SIN alterar línea base
-- **🚨 Sistema de Alertas**: Heurísticas avanzadas de detección de amenazas
+**Differentiated functionality:**
+- **🔄 "Refresh" button**: the ONLY one able to retake reference snapshots
+- **🔍 "Deep Scan" button**: comparative analysis WITHOUT altering the baseline
+- **🚨 Alert System**: advanced threat-detection heuristics
 
-#### **⚡ Monitor de Procesos Inteligente**
+#### **⚡ Intelligent Process Monitor**
 ```c
 typedef struct {
-    pid_t pid;                  // Identificador del proceso
-    char name[256];             // Nombre del ejecutable
-    float cpu_usage;            // Porcentaje de CPU utilizado
-    float mem_usage;            // Porcentaje de memoria utilizada
-    time_t alerta_activa;       // Timestamp de alerta activa
-    int is_whitelisted;         // Estado de lista blanca
+    pid_t pid;                  // Process identifier
+    char name[256];             // Executable name
+    float cpu_usage;            // CPU usage percentage
+    float mem_usage;            // Memory usage percentage
+    time_t alerta_activa;       // Active alert timestamp
+    int is_whitelisted;         // Whitelist status
 } ProcessInfo;
 ```
 
-#### **🔌 Escáner de Puertos Profesional**
+#### **🔌 Professional Port Scanner**
 ```c
 typedef struct {
-    int port;                   // Número del puerto
-    char service_name[64];      // Nombre del servicio identificado
-    int is_open;                // Estado del puerto (abierto/cerrado)
-    int is_suspicious;          // Evaluación de riesgo de seguridad
+    int port;                   // Port number
+    char service_name[64];      // Identified service name
+    int is_open;                // Port state (open/closed)
+    int is_suspicious;          // Security risk assessment
 } PortInfo;
 ```
 
-## 🛠️ Instalación y Compilación
+## 🛠️ Installation and Build
 
-### **📋 Requisitos del Sistema**
+### **📋 System Requirements**
 
-#### **Sistema Operativo**
+#### **Operating System**
 - Linux (Ubuntu 18.04+, Debian 10+, CentOS 7+, Arch Linux)
-- Kernel 3.2+ con soporte para `/proc` y `/sys`
-- Acceso a dispositivos USB y permisos de red
+- Kernel 3.2+ with `/proc` and `/sys` support
+- Access to USB devices and network permissions
 
-#### **Dependencias Esenciales**
+#### **Essential Dependencies**
 ```bash
 # Ubuntu/Debian
 sudo apt-get update
@@ -157,395 +159,395 @@ sudo dnf install pkg-config git
 sudo pacman -S base-devel gtk3 cairo openssl libudev pkg-config git
 ```
 
-#### **Bibliotecas Utilizadas**
-| Biblioteca | Versión | Propósito |
+#### **Libraries Used**
+| Library | Version | Purpose |
 |------------|---------|-----------|
-| **GTK+ 3.0** | ≥3.20 | Interfaz gráfica moderna y responsiva |
-| **Cairo/Cairo-PDF** | ≥1.14 | Renderizado gráfico y exportación PDF |
-| **OpenSSL** | ≥1.1 | Criptografía para hashes SHA-256 |
-| **libudev** | ≥230 | Monitoreo de dispositivos USB en Linux |
-| **pthreads** | POSIX | Multi-threading para monitoreo en tiempo real |
+| **GTK+ 3.0** | ≥3.20 | Modern, responsive graphical interface |
+| **Cairo/Cairo-PDF** | ≥1.14 | Graphics rendering and PDF export |
+| **OpenSSL** | ≥1.1 | Cryptography for SHA-256 hashes |
+| **libudev** | ≥230 | USB device monitoring on Linux |
+| **pthreads** | POSIX | Multi-threading for real-time monitoring |
 
-### **🔧 Proceso de Compilación**
+### **🔧 Build Process**
 
-#### **Instalación Estándar**
+#### **Standard Installation**
 ```bash
-# 1. Clonar el repositorio
+# 1. Clone the repository
 git clone https://github.com/tu-usuario/MatCom-Guard-SO-Project.git
 cd MatCom-Guard-SO-Project/MatCom-Guard-SO-Project
 
-# 2. Verificar dependencias
+# 2. Check dependencies
 make check-deps
 
-# 3. Compilar el proyecto
+# 3. Build the project
 make clean && make
 
-# 4. Ejecutar la aplicación
+# 4. Run the application
 ./matcom-guard
 
-# 5. Instalación en el sistema (opcional)
+# 5. Install on the system (optional)
 sudo make install
 ```
 
-#### **Compilación con Opciones de Debug**
+#### **Build with debug options**
 ```bash
-# Para desarrollo y debugging
+# For development and debugging
 make debug
 
-# Para análisis de memoria
+# For memory analysis
 make clean
 CFLAGS="-g -DDEBUG -O0 -fsanitize=address" make
 
-# Ejecutar con Valgrind
+# Run with Valgrind
 valgrind --leak-check=full --show-leak-kinds=all ./matcom-guard
 ```
 
-### **⚙️ Makefile Inteligente**
-El proyecto incluye un Makefile completo con múltiples opciones de compilación:
+### **⚙️ Smart Makefile**
+The project includes a complete Makefile with multiple build options:
 
 ```makefile
-# Configuración optimizada para desarrollo y producción
+# Optimized configuration for development and production
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -g -Iinclude -DDEBUG
 GTK_FLAGS = `pkg-config --cflags --libs gtk+-3.0`
 CAIRO_FLAGS = `pkg-config --cflags --libs cairo cairo-pdf`
 LIBS = -lcrypto -lpthread -ludev
 
-# Comandos disponibles:
-make                    # Compilación estándar
-make clean              # Limpiar archivos objeto
-make debug             # Compilación con símbolos de debug
-make install           # Instalar en el sistema
-make test              # Ejecutar programa
-make check-deps        # Verificar dependencias
+# Available commands:
+make                    # Standard build
+make clean              # Clean object files
+make debug             # Build with debug symbols
+make install           # Install on the system
+make test              # Run the program
+make check-deps        # Check dependencies
 ```
 
-**Características del Makefile:**
-- **Detección automática de dependencias** con `check-deps`
-- **Soporte para compilación condicional** con banderas debug
-- **Limpieza automática** de archivos temporales
-- **Instalación del sistema** con privilegios elevados
+**Makefile features:**
+- **Automatic dependency detection** with `check-deps`
+- **Conditional build support** with debug flags
+- **Automatic cleanup** of temporary files
+- **System installation** with elevated privileges
 
-### **🔐 Configuración de Permisos**
+### **🔐 Permission Configuration**
 
-#### **Permisos para Dispositivos USB**
+#### **Permissions for USB Devices**
 ```bash
-# Agregar usuario al grupo plugdev para acceso USB
+# Add the user to the plugdev group for USB access
 sudo usermod -a -G plugdev $USER
 
-# Crear regla udev personalizada (opcional)
+# Create a custom udev rule (optional)
 echo 'SUBSYSTEM=="usb", GROUP="plugdev", MODE="0664"' | \
 sudo tee /etc/udev/rules.d/99-matcom-guard-usb.rules
 
-# Recargar reglas udev
+# Reload udev rules
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
-#### **Permisos para Monitoreo de Procesos**
+#### **Permissions for Process Monitoring**
 ```bash
-# Para monitoreo completo de procesos del sistema
+# For full monitoring of system processes
 sudo chmod +s ./matcom-guard
 
-# O ejecutar con privilegios elevados
+# Or run with elevated privileges
 sudo ./matcom-guard
 ```
 
-### **📁 Estructura del Proyecto**
+### **📁 Project Structure**
 ```
 MatCom-Guard-SO-Project/
-├── Makefile                    # Sistema de compilación
-├── matcomguard.conf           # Archivo de configuración
-├── README.md                  # Esta documentación
-├── include/                   # Headers del proyecto
-│   ├── common.h              # Definiciones comunes
-│   ├── device_monitor.h      # Monitor de dispositivos USB
-│   ├── process_monitor.h     # Monitor de procesos
-│   ├── port_scanner.h        # Escáner de puertos
-│   └── gui*.h                # Headers de la interfaz gráfica
-├── src/                      # Código fuente principal
-│   ├── main.c               # Punto de entrada del programa
-│   ├── device_monitor.c     # Implementación del monitor USB
-│   ├── process_monitor.c    # Implementación del monitor de procesos
-│   ├── port_scanner.c       # Implementación del escáner de puertos
-│   └── gui/                 # Código de la interfaz gráfica
-│       ├── gui_main.c       # Ventana principal y coordinación
-│       ├── integration/     # Capa de integración GUI-Backend
-│       └── window/          # Componentes específicos de ventanas
-└── docs/                    # Documentación adicional (si existe)
+├── Makefile                    # Build system
+├── matcomguard.conf           # Configuration file
+├── README.md                  # This documentation
+├── include/                   # Project headers
+│   ├── common.h              # Common definitions
+│   ├── device_monitor.h      # USB device monitor
+│   ├── process_monitor.h     # Process monitor
+│   ├── port_scanner.h        # Port scanner
+│   └── gui*.h                # Graphical interface headers
+├── src/                      # Main source code
+│   ├── main.c               # Program entry point
+│   ├── device_monitor.c     # USB monitor implementation
+│   ├── process_monitor.c    # Process monitor implementation
+│   ├── port_scanner.c       # Port scanner implementation
+│   └── gui/                 # Graphical interface code
+│       ├── gui_main.c       # Main window and coordination
+│       ├── integration/     # GUI-Backend integration layer
+│       └── window/          # Window-specific components
+└── docs/                    # Additional documentation (if present)
 ```
 
-## 📖 Guía de Uso
+## 📖 Usage Guide
 
-### **🚀 Inicio Rápido**
+### **🚀 Quick Start**
 
-1. **Lanzar la Aplicación**
+1. **Launch the Application**
    ```bash
    ./matcom-guard
    ```
 
-2. **Dashboard Principal**
-   - Vista general del estado del sistema
-   - Estadísticas en tiempo real
-   - Acceso rápido a todos los módulos
+2. **Main Dashboard**
+   - General overview of system status
+   - Real-time statistics
+   - Quick access to every module
 
-3. **Escaneo Básico**
-   - **Puertos**: Botones "Escaneo Rápido" y "Escaneo Completo"
-   - **Procesos**: Monitoreo automático con alertas
-   - **USB**: Funcionalidad diferenciada única
+3. **Basic Scan**
+   - **Ports**: "Quick Scan" and "Full Scan" buttons
+   - **Processes**: automatic monitoring with alerts
+   - **USB**: unique differentiated functionality
 
-### **🔌 Monitoreo de Dispositivos USB**
+### **🔌 USB Device Monitoring**
 
-#### **Funcionalidad Diferenciada Única**
+#### **Unique Differentiated Functionality**
 
-**🔄 Botón "Actualizar"**
-- **Función Exclusiva**: Único capaz de retomar snapshots
-- **Uso**: Después de cambios legítimos en dispositivos
-- **Resultado**: Establece nueva línea base de referencia
-- **Estado GUI**: Marca dispositivos como "ACTUALIZADO"
+**🔄 "Refresh" Button**
+- **Exclusive function**: the only one able to retake snapshots
+- **Use**: after legitimate changes to devices
+- **Result**: establishes a new reference baseline
+- **GUI state**: marks devices as "UPDATED"
 
-**🔍 Botón "Escaneo Profundo"**
-- **Función No Destructiva**: Compara sin alterar snapshots
-- **Uso**: Verificación de seguridad periódica
-- **Resultado**: Detecta cambios sin modificar línea base
-- **Estados GUI**: "LIMPIO", "CAMBIOS", "SOSPECHOSO"
+**🔍 "Deep Scan" Button**
+- **Non-destructive function**: compares without altering snapshots
+- **Use**: periodic security verification
+- **Result**: detects changes without modifying the baseline
+- **GUI states**: "CLEAN", "CHANGES", "SUSPICIOUS"
 
-#### **Criterios de Detección de Amenazas**
+#### **Threat-Detection Criteria**
 ```
-Actividad Sospechosa:
-├── Eliminación Masiva: >10% archivos eliminados
-├── Modificación Masiva: >20% archivos modificados
-├── Actividad Alta: >30% cambios totales
-└── Inyección: Muchos archivos nuevos en dispositivos pequeños
+Suspicious Activity:
+├── Mass Deletion: >10% of files deleted
+├── Mass Modification: >20% of files modified
+├── High Activity: >30% total changes
+└── Injection: many new files on small devices
 ```
 
-### **📊 Monitoreo de Procesos**
+### **📊 Process Monitoring**
 
-- **Tiempo Real**: Actualización continua de CPU y memoria
-- **Alertas Inteligentes**: Detección de procesos sospechosos
-- **Información Detallada**: PID, nombre, usuario, estado
-- **Acciones**: Terminación segura de procesos problemáticos
+- **Real time**: continuous CPU and memory updates
+- **Smart Alerts**: suspicious-process detection
+- **Detailed Info**: PID, name, user, state
+- **Actions**: safe termination of problematic processes
 
-### **🔍 Escaneo de Puertos**
+### **🔍 Port Scanning**
 
-- **Escaneo Rápido**: Puertos comunes (21, 22, 23, 25, 53, 80, 110, 443, 993, 995)
-- **Escaneo Completo**: Rango amplio de puertos (1-65535)
-- **Detección de Servicios**: Identificación automática de servicios
-- **Análisis de Amenazas**: Evaluación de riesgos de seguridad
+- **Quick Scan**: common ports (21, 22, 23, 25, 53, 80, 110, 443, 993, 995)
+- **Full Scan**: wide port range (1-65535)
+- **Service Detection**: automatic service identification
+- **Threat Analysis**: security risk assessment
 
-## 🔧 Funcionalidades Avanzadas
+## 🔧 Advanced Features
 
-### **📄 Exportación de Reportes PDF**
+### **📄 PDF Report Export**
 
 ```c
-// Sistema profesional de reportes
-- Formato profesional con logos
-- Información detallada de todos los módulos
-- Timestamps y metadatos completos
+// Professional reporting system
+- Professional format with logos
+- Detailed information from every module
+- Complete timestamps and metadata
 ```
 
-### **🔄 Sistema de Logging Avanzado**
+### **🔄 Advanced Logging System**
 
 ```c
-// Categorías de logging
-- INFO: Información general
-- WARNING: Advertencias importantes
-- ERROR: Errores del sistema
-- ALERT: Amenazas detectadas
+// Logging categories
+- INFO: general information
+- WARNING: important warnings
+- ERROR: system errors
+- ALERT: detected threats
 ```
 
-### **⚙️ Configuración Flexible**
+### **⚙️ Flexible Configuration**
 
-MatCom Guard utiliza un archivo de configuración `matcomguard.conf` que permite personalizar el comportamiento del sistema:
+MatCom Guard uses a `matcomguard.conf` configuration file that lets you customize the system's behavior:
 
 ```properties
-# Archivo: matcomguard.conf
-UMBRAL_CPU=70.0          # Umbral de CPU para alertas (%)
-UMBRAL_RAM=50.0          # Umbral de memoria para alertas (%)
-INTERVALO=5              # Intervalo de monitoreo (segundos)
-DURACION_ALERTA=10       # Duración de alertas (segundos)
+# File: matcomguard.conf
+UMBRAL_CPU=70.0          # CPU threshold for alerts (%)
+UMBRAL_RAM=50.0          # Memory threshold for alerts (%)
+INTERVALO=5              # Monitoring interval (seconds)
+DURACION_ALERTA=10       # Alert duration (seconds)
 WHITELIST=systemd,kthreadd,ksoftirqd,migration,rcu_gp,rcu_par_gp,watchdog,stress,yes
 ```
 
-**Opciones Configurables:**
-- **Intervalos de Escaneo**: Configurables por módulo
-- **Umbrales de Alerta**: Personalizables para CPU/memoria
-- **Lista Blanca**: Procesos excluidos del monitoreo
-- **Notificaciones**: Alertas sonoras y visuales
-- **Filtros**: Personalización de logs y reportes
+**Configurable options:**
+- **Scan intervals**: configurable per module
+- **Alert thresholds**: customizable for CPU/memory
+- **Whitelist**: processes excluded from monitoring
+- **Notifications**: audible and visual alerts
+- **Filters**: log and report customization
 
-### **🛡️ Seguridad Thread-Safe**
+### **🛡️ Thread-Safe Security**
 
 ```c
-// Protección robusta contra race conditions
+// Robust protection against race conditions
 pthread_mutex_t state_mutex = PTHREAD_MUTEX_INITIALIZER;
 volatile int should_stop_monitoring = 0;
 
-// Timeout inteligente para evitar bloqueos
+// Smart timeout to avoid deadlocks
 int timeout_seconds = 3;
-// Verificación periódica cada segundo
+// Periodic check every second
 ```
 
-## 📚 Documentación Técnica
+## 📚 Technical Documentation
 
-### **🔍 APIs Principales**
+### **🔍 Main APIs**
 
-#### **Integración USB**
+#### **USB Integration**
 ```c
-int init_usb_integration(void);           // Inicialización
-int start_usb_monitoring(int interval);   // Inicio de monitoreo
-int refresh_usb_snapshots(void);          // Actualización exclusiva
-int deep_scan_usb_devices(void);          // Análisis no destructivo
-void cleanup_usb_integration(void);       // Limpieza robusta
+int init_usb_integration(void);           // Initialization
+int start_usb_monitoring(int interval);   // Start monitoring
+int refresh_usb_snapshots(void);          // Exclusive refresh
+int deep_scan_usb_devices(void);          // Non-destructive analysis
+void cleanup_usb_integration(void);       // Robust cleanup
 ```
 
-#### **Monitor de Procesos**
+#### **Process Monitor**
 ```c
-int init_process_monitoring(void);        // Inicialización
-int start_process_monitoring(void);       // Inicio de monitoreo
-ProcessInfo* get_process_list(void);      // Obtener lista de procesos
-void cleanup_process_monitoring(void);    // Limpieza
+int init_process_monitoring(void);        // Initialization
+int start_process_monitoring(void);       // Start monitoring
+ProcessInfo* get_process_list(void);      // Get the process list
+void cleanup_process_monitoring(void);    // Cleanup
 ```
 
-#### **Escáner de Puertos**
+#### **Port Scanner**
 ```c
-ScanResult* scan_ports_range(int start, int end);  // Escaneo por rango
-int is_port_open(const char *host, int port);      // Verificar puerto
-void free_scan_result(ScanResult *result);         // Liberar memoria
+ScanResult* scan_ports_range(int start, int end);  // Range scan
+int is_port_open(const char *host, int port);      // Check a port
+void free_scan_result(ScanResult *result);         // Free memory
 ```
 
-### **🧪 Casos de Prueba**
+### **🧪 Test Cases**
 
-#### **Pruebas de Funcionalidad USB**
+#### **USB Functionality Tests**
 ```bash
-# Prueba 1: Funcionalidad diferenciada
-1. Conectar dispositivo USB
-2. Presionar "Actualizar" → Verificar estado "ACTUALIZADO"
-3. Modificar archivos en dispositivo
-4. Presionar "Escaneo Profundo" → Verificar detección de cambios
-5. Verificar que snapshot no cambió
+# Test 1: Differentiated functionality
+1. Connect a USB device
+2. Press "Refresh" → verify "UPDATED" status
+3. Modify files on the device
+4. Press "Deep Scan" → verify change detection
+5. Verify the snapshot didn't change
 
-# Prueba 2: Detección de amenazas
-1. Eliminar >10% de archivos → Verificar estado "SOSPECHOSO"
-2. Modificar >20% de archivos → Verificar alerta de seguridad
+# Test 2: Threat detection
+1. Delete >10% of files → verify "SUSPICIOUS" status
+2. Modify >20% of files → verify a security alert
 ```
 
-#### **Pruebas de Robustez**
+#### **Robustness Tests**
 ```bash
-# Prueba de cierre limpio
-1. Ejecutar monitoreo completo
-2. Cerrar aplicación → Verificar terminación en <5 segundos
-3. Verificar que no quedan procesos zombie
+# Clean-shutdown test
+1. Run full monitoring
+2. Close the application → verify termination in <5 seconds
+3. Verify no zombie processes remain
 
-# Prueba de concurrencia
-1. Ejecutar múltiples escaneos simultáneos
-2. Verificar protección contra race conditions
-3. Verificar limpieza correcta de recursos
+# Concurrency test
+1. Run multiple simultaneous scans
+2. Verify protection against race conditions
+3. Verify correct resource cleanup
 ```
 
 ## 🔧 Troubleshooting
 
-### **❌ Problemas Comunes**
+### **❌ Common Issues**
 
-#### **Error de Compilación**
+#### **Build Error**
 ```bash
-# Error: pkg-config no encontrado
+# Error: pkg-config not found
 sudo apt-get install pkg-config
 
-# Error: headers GTK+ no encontrados
+# Error: GTK+ headers not found
 sudo apt-get install libgtk-3-dev
 
-# Error: libcrypto no encontrada
+# Error: libcrypto not found
 sudo apt-get install libssl-dev
 ```
 
-#### **Problemas de Ejecución**
+#### **Runtime Issues**
 ```bash
-# Error: No se puede acceder a dispositivos USB
+# Error: cannot access USB devices
 sudo usermod -a -G plugdev $USER
-# Reiniciar sesión después
+# Restart the session afterward
 
-# Error: Permisos insuficientes para procesos
+# Error: insufficient permissions for processes
 sudo chmod +s ./matcom-guard
-# O ejecutar con sudo para funcionalidad completa
+# Or run with sudo for full functionality
 
-# Error: No se puede crear archivo PDF
+# Error: cannot create the PDF file
 sudo apt-get install cairo-pdf-dev
-# O verificar permisos de escritura en el directorio
+# Or check write permissions on the directory
 ```
 
-#### **Problemas de Rendimiento**
+#### **Performance Issues**
 ```bash
-# Alta carga de CPU
-- Ajustar intervalos de escaneo en configuración
-- Usar escaneo rápido en lugar de completo
+# High CPU load
+- Adjust scan intervals in the configuration
+- Use quick scan instead of full scan
 
-# Uso excesivo de memoria
-- Verificar limpieza de snapshots USB
-- Revisar logs para memory leaks
+# Excessive memory use
+- Verify USB-snapshot cleanup
+- Check the logs for memory leaks
 ```
 
 ### **🔍 Debugging**
 
 ```bash
-# Compilación con información de debug
+# Build with debug info
 make clean
 CFLAGS="-g -DDEBUG -O0" make
 
-# Ejecutar con gdb
+# Run with gdb
 gdb ./matcom-guard
 
-# Verificar memory leaks
+# Check for memory leaks
 valgrind --leak-check=full ./matcom-guard
 ```
 
-### **📞 Soporte**
+### **📞 Support**
 
-Para problemas no resueltos:
+For unresolved issues:
 
-1. **Revisar logs** en la interfaz gráfica
-2. **Consultar documentación** en `/docs`
-3. **Ejecutar pruebas** en `/tests`
-4. **Reportar issues** con información completa del sistema
+1. **Check the logs** in the graphical interface
+2. **Consult the documentation** in `/docs`
+3. **Run the tests** in `/tests`
+4. **Report issues** with complete system information
 
-## 🤝 Contribución
+## 🤝 Contributing
 
-### **🌟 Cómo Contribuir**
+### **🌟 How to Contribute**
 
-1. **Fork** el repositorio
-2. **Crear branch** para nueva funcionalidad
-3. **Implementar** con documentación completa
-4. **Ejecutar pruebas** de regresión
-5. **Enviar Pull Request** con descripción detallada
+1. **Fork** the repository
+2. **Create a branch** for the new feature
+3. **Implement** with complete documentation
+4. **Run regression tests**
+5. **Submit a Pull Request** with a detailed description
 
-### **📋 Estándares de Código**
+### **📋 Code Standards**
 
-- **Estilo**: C99 estándar con comentarios JSDoc
-- **Naming**: snake_case para funciones, UPPER_CASE para constantes
-- **Documentación**: Doxygen-style para todas las funciones públicas
-- **Testing**: Casos de prueba para toda nueva funcionalidad
+- **Style**: standard C99 with JSDoc-style comments
+- **Naming**: snake_case for functions, UPPER_CASE for constants
+- **Documentation**: Doxygen-style for every public function
+- **Testing**: test cases for every new feature
 
-### **🏆 Áreas de Mejora**
+### **🏆 Areas for Improvement**
 
-- **Soporte Multi-Plataforma**: Extensión a Windows/macOS
-- **Análisis ML**: Detección de anomalías con machine learning
-- **API REST**: Interfaz web para monitoreo remoto
-- **Base de Datos**: Persistencia de logs y estadísticas
+- **Multi-Platform Support**: extend to Windows/macOS
+- **ML Analysis**: anomaly detection with machine learning
+- **REST API**: web interface for remote monitoring
+- **Database**: log and statistics persistence
 
 ---
 
-## 📜 Créditos y Licencia
+## 📜 Credits and License
 
-**Desarrollado para el proyecto de Sistemas Operativos - MatCom**
+**Developed for the Operating Systems course project - MatCom**
 
-### **🔗 Recursos Utilizados**
+### **🔗 Resources Used**
 - [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)
 - [GTK+ Documentation](https://www.gtk.org/docs/)
 - [Linux Man Pages - proc(5)](https://man7.org/linux/man-pages/man5/proc.5.html)
 
-### **⚖️ Licencia**
-Este proyecto es open source y está disponible bajo licencia educativa para fines académicos.
+### **⚖️ License**
+This project is open source and available under an educational license for academic purposes.
 
 ---
 
-*MatCom Guard v1.0 - Tu guardia digital confiable* 🛡️
+*MatCom Guard v1.0 - Your reliable digital guard* 🛡️
