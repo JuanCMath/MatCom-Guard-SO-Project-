@@ -353,7 +353,15 @@ int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path,
                     strncpy(task->full_path, full_path, sizeof(task->full_path) - 1);
                     task->full_path[sizeof(task->full_path) - 1] = '\0';
                     task->file_info = file_info;
-                    threadpool_submit(hash_pool, hash_file_task, task);
+                    if (threadpool_submit(hash_pool, hash_file_task, task) != 0) {
+                        // El pool no pudo encolar la tarea (p.ej. fallo de
+                        // malloc interno): liberar y calcular el hash aquí
+                        // mismo para no dejar sha256_hash vacío para siempre.
+                        free(task);
+                        if (calculate_sha256(full_path, file_info->sha256_hash) != 0) {
+                            strcpy(file_info->sha256_hash, "ERROR_CALCULATING_HASH");
+                        }
+                    }
                 } else if (calculate_sha256(full_path, file_info->sha256_hash) != 0) {
                     strcpy(file_info->sha256_hash, "ERROR_CALCULATING_HASH");
                 }
