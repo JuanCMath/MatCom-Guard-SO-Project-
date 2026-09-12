@@ -55,3 +55,6 @@ dkms.conf
 /matcom-guard
 /matcom-guard_debug
 *.pdf
+
+# Brainstorming companion scratch files
+.superpowers/
