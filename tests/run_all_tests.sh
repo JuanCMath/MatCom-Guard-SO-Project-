@@ -36,16 +36,16 @@ print_error() {
 check_matcom_guard() {
     print_status "Verificando que MatCom Guard esté ejecutándose..."
     
-    if pgrep -f "matcom_guard" > /dev/null; then
+    if pgrep -f "matcom-guard" > /dev/null; then
         print_success "MatCom Guard detectado ejecutándose"
         return 0
     else
         print_warning "MatCom Guard no parece estar ejecutándose"
         echo ""
         echo "Por favor, inicia MatCom Guard en otra terminal:"
-        echo "  cd /media/sf_ProyectoSO/MatCom-Guard-SO-Project"
+        echo "  cd MatCom-Guard-SO-Project"
         echo "  make clean && make"
-        echo "  ./matcom_guard"
+        echo "  ./matcom-guard"
         echo ""
         read -p "¿Continuar de todos modos? (y/N): " -n 1 -r
         echo

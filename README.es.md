@@ -173,8 +173,8 @@ sudo pacman -S base-devel gtk3 cairo openssl libudev pkg-config git
 #### **Instalación Estándar**
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/MatCom-Guard-SO-Project.git
-cd MatCom-Guard-SO-Project/MatCom-Guard-SO-Project
+git clone https://github.com/jccarmenate/MatCom-Guard-SO-Project.git
+cd MatCom-Guard-SO-Project
 
 # 2. Verificar dependencias
 make check-deps

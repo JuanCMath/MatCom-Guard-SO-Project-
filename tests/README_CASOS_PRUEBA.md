@@ -44,9 +44,9 @@ tests/
 
 1. **MatCom Guard debe estar ejecutándose** en otra terminal:
    ```bash
-   cd /media/sf_ProyectoSO/MatCom-Guard-SO-Project
+   cd MatCom-Guard-SO-Project
    make clean && make
-   ./matcom_guard
+   ./matcom-guard
    ```
 
 2. **Permisos de root** para algunas pruebas (montaje USB, apertura de puertos privilegiados)
@@ -63,9 +63,9 @@ tests/
 ### 1. Iniciar MatCom Guard
 ```bash
 # En una terminal separada
-cd /media/sf_ProyectoSO/MatCom-Guard-SO-Project
+cd MatCom-Guard-SO-Project
 make clean && make
-./matcom_guard
+./matcom-guard
 ```
 
 ### 2. Ejecutar Tests Individuales
