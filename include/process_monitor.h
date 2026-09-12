@@ -41,7 +41,8 @@ typedef struct {
     void (*on_high_cpu_alert)(ProcessInfo *info);
     void (*on_high_memory_alert)(ProcessInfo *info);
     void (*on_alert_cleared)(ProcessInfo *info);
-    void (*on_status_update)(const ProgressUpdate *update);
+    ProgressCallback on_status_update;
+    void *status_user_data;
 } ProcessCallbacks;
 
 // Estructura para estadísticas de monitoreo

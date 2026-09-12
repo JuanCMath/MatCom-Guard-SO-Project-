@@ -449,8 +449,12 @@ static void* monitoring_thread_function(void* arg) {
     while (!should_stop) {
         monitor_processes();
         int active_count = num_procesos_activos;
-        void (*status_cb)(const ProgressUpdate *update) =
-            event_callbacks ? event_callbacks->on_status_update : NULL;
+        ProgressCallback status_cb = NULL;
+        void *status_user_data = NULL;
+        if (event_callbacks) {
+            status_cb = event_callbacks->on_status_update;
+            status_user_data = event_callbacks->status_user_data;
+        }
 
         if (should_stop) {
             break;
@@ -461,7 +465,7 @@ static void* monitoring_thread_function(void* arg) {
             char phase[128];
             snprintf(phase, sizeof(phase), "Monitoreando... %d procesos activos", active_count);
             ProgressUpdate update = { .phase = phase, .current = 0, .total = 0 };
-            status_cb(&update);
+            status_cb(&update, status_user_data);
         }
         pthread_mutex_lock(&mutex);
 
@@ -542,7 +546,7 @@ int stop_monitoring(void) {
     }
 
     should_stop = 1;
-    pthread_cond_signal(&stop_cond);
+    pthread_cond_broadcast(&stop_cond);
     pthread_mutex_unlock(&mutex);
 
     printf("[INFO] Esperando terminación del hilo de monitoreo...\n");

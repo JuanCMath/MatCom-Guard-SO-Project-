@@ -72,6 +72,10 @@ const FileInfo* device_monitor_find_file(const DeviceSnapshot *snapshot, const c
  * hash en el pool (concurrente); si `hash_pool` es NULL, lo calcula en el
  * hilo actual. `total_files` (de `count_files_recursive`) y `cb` permiten
  * reportar progreso determinado; `cancel` permite interrumpir el recorrido.
+ * Si `hash_pool` no es NULL, los campos `sha256_hash` de los archivos con
+ * hash encolado NO son válidos hasta que el llamador invoque
+ * `threadpool_wait(hash_pool)` -- `create_device_snapshot_ex` ya hace esto
+ * internamente antes de devolver el snapshot.
  */
 int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path,
                               const DeviceSnapshot *previous_snapshot,
@@ -87,12 +91,19 @@ DeviceSnapshot* create_device_snapshot(const char *device_name);
  * hashes en paralelo (`hash_pool`, puede ser NULL para calcular en el
  * hilo actual), reportar progreso (`cb`/`user_data`, pueden ser NULL) y
  * cancelar el escaneo (`cancel`, puede ser NULL).
+ *
+ * `was_cancelled` (puede ser NULL): si no es NULL, se pone en 1 si el
+ * escaneo fue interrumpido — en ese caso el snapshot resultante está
+ * incompleto y NO debe usarse para comparar contra un snapshot anterior
+ * (p. ej. con detect_usb_changes), ya que los archivos no alcanzados a
+ * escanear se leerían incorrectamente como eliminados.
  */
 DeviceSnapshot* create_device_snapshot_ex(const char *device_name,
                                            const DeviceSnapshot *previous_snapshot,
                                            ThreadPool *hash_pool,
                                            ProgressCallback cb, void *user_data,
-                                           volatile sig_atomic_t *cancel);
+                                           volatile sig_atomic_t *cancel,
+                                           int *was_cancelled);
 void free_device_snapshot(DeviceSnapshot *snapshot);
 int validate_device_snapshot(const DeviceSnapshot *snapshot);
 

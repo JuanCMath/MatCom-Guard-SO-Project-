@@ -398,7 +398,12 @@ DeviceSnapshot* create_device_snapshot_ex(const char *device_name,
                                            const DeviceSnapshot *previous_snapshot,
                                            ThreadPool *hash_pool,
                                            ProgressCallback cb, void *user_data,
-                                           volatile sig_atomic_t *cancel) {
+                                           volatile sig_atomic_t *cancel,
+                                           int *was_cancelled) {
+    if (was_cancelled) {
+        *was_cancelled = 0;
+    }
+
     if (!device_name) {
         printf("Error: device_name es NULL\n");
         return NULL;
@@ -460,6 +465,10 @@ DeviceSnapshot* create_device_snapshot_ex(const char *device_name,
         printf("Error al escanear el dispositivo %s\n", device_name);
     }
 
+    if (was_cancelled && cancel && *cancel) {
+        *was_cancelled = 1;
+    }
+
     if (hash_pool) {
         threadpool_wait(hash_pool);
     }
@@ -471,7 +480,7 @@ DeviceSnapshot* create_device_snapshot_ex(const char *device_name,
 }
 
 DeviceSnapshot* create_device_snapshot(const char *device_name) {
-    return create_device_snapshot_ex(device_name, NULL, NULL, NULL, NULL, NULL);
+    return create_device_snapshot_ex(device_name, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /**

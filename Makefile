@@ -33,6 +33,7 @@ $(TARGET): $(SRC)
 
 clean:
 	rm -f $(TARGET) *.o
+	rm -f tests/unit/test_progress tests/unit/test_threadpool tests/unit/test_port_classification tests/unit/test_port_scan_range tests/unit/test_hash_skip tests/unit/test_process_shutdown tests/unit/benchmark_port_scan
 
 install: $(TARGET)
 	sudo cp $(TARGET) /usr/local/bin/

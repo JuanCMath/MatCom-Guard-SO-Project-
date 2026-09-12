@@ -56,5 +56,14 @@ dkms.conf
 /matcom-guard_debug
 *.pdf
 
+# Unit test binaries (built by `make test-unit`, not part of the source tree)
+/tests/unit/test_progress
+/tests/unit/test_threadpool
+/tests/unit/test_port_classification
+/tests/unit/test_port_scan_range
+/tests/unit/test_hash_skip
+/tests/unit/test_process_shutdown
+/tests/unit/benchmark_port_scan
+
 # Brainstorming companion scratch files
 .superpowers/
