@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/types.h>
+#include "progress.h"
 
 #define CONFIG_PATH "./matcomguard.conf"
 
@@ -40,6 +41,7 @@ typedef struct {
     void (*on_high_cpu_alert)(ProcessInfo *info);
     void (*on_high_memory_alert)(ProcessInfo *info);
     void (*on_alert_cleared)(ProcessInfo *info);
+    void (*on_status_update)(const ProgressUpdate *update);
 } ProcessCallbacks;
 
 // Estructura para estadísticas de monitoreo

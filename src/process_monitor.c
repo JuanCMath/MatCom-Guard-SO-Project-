@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <time.h>
 #include <pthread.h>
+#include <errno.h>
 #include <sys/sysinfo.h>
 #include "process_monitor.h"
 
@@ -14,6 +15,7 @@
 
 Config config;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t stop_cond = PTHREAD_COND_INITIALIZER;
 FILE *log_file = NULL;
 
 // Variables globales para procesos activos
@@ -437,20 +439,43 @@ void set_process_callbacks(ProcessCallbacks *callbacks) {
 
 static void* monitoring_thread_function(void* arg) {
     (void)arg; // Evitar warning de parámetro no usado
-    
+
+    pthread_mutex_lock(&mutex);
     while (!should_stop) {
-        // Ejecutar ciclo de monitoreo
-        pthread_mutex_lock(&mutex);
         monitor_processes();
+        int active_count = num_procesos_activos;
+
+        if (should_stop) {
+            break;
+        }
+
         pthread_mutex_unlock(&mutex);
-        
-        // Esperar el intervalo configurado
-        for (int i = 0; i < config.check_interval && !should_stop; i++) {
-            sleep(1);
+        if (event_callbacks && event_callbacks->on_status_update) {
+            char phase[128];
+            snprintf(phase, sizeof(phase), "Monitoreando... %d procesos activos", active_count);
+            ProgressUpdate update = { .phase = phase, .current = 0, .total = 0 };
+            event_callbacks->on_status_update(&update);
+        }
+        pthread_mutex_lock(&mutex);
+
+        if (should_stop) {
+            break;
+        }
+
+        struct timespec deadline;
+        clock_gettime(CLOCK_REALTIME, &deadline);
+        deadline.tv_sec += config.check_interval;
+
+        while (!should_stop) {
+            int rc = pthread_cond_timedwait(&stop_cond, &mutex, &deadline);
+            if (rc == ETIMEDOUT) {
+                break;
+            }
         }
     }
-    
     monitoring_active = 0;
+    pthread_mutex_unlock(&mutex);
+
     pthread_exit(NULL);
     return NULL;
 }
@@ -501,58 +526,44 @@ int start_monitoring(void) {
  */
 int stop_monitoring(void) {
     pthread_mutex_lock(&mutex);
-    
+
     if (!monitoring_active) {
         pthread_mutex_unlock(&mutex);
         printf("[INFO] El monitoreo no está activo\n");
-        return 1; // No estaba activo
+        return 1;
     }
-    
+
     should_stop = 1;
+    pthread_cond_signal(&stop_cond);
     pthread_mutex_unlock(&mutex);
-    
+
     printf("[INFO] Esperando terminación del hilo de monitoreo...\n");
-      // IMPLEMENTACIÓN DEL TIMEOUT: En lugar de usar pthread_join() directamente
-    // (que puede bloquear indefinidamente), verificamos periódicamente el estado
-    // del hilo. Esto permite detectar si el hilo no responde y tomar medidas correctivas.
-    int timeout_seconds = 3;
-    int attempts = 0;
-    
-    while (attempts < timeout_seconds) {
+
+    // El hilo ya recibió la señal y debería despertar de inmediato; sondeamos
+    // cada 100ms (en vez de cada 1s como antes) para detectar que terminó lo
+    // antes posible, con un tope defensivo de 3s por si quedó bloqueado
+    // dentro de monitor_processes() y no llega a revisar should_stop.
+    const int max_attempts = 30;  // 30 * 100ms = 3s
+    for (int attempts = 0; attempts < max_attempts; attempts++) {
         pthread_mutex_lock(&mutex);
         int still_active = monitoring_active;
         pthread_mutex_unlock(&mutex);
-        
+
         if (!still_active) {
-            printf("[INFO] Hilo de monitoreo terminó naturalmente\n");
+            pthread_join(monitoring_thread, NULL);
+            printf("[INFO] Hilo de monitoreo terminó\n");
             return 0;
         }
-        
-        sleep(1);
-        attempts++;
-    }    // TERMINACIÓN FORZADA: Si el hilo no responde en el tiempo esperado,
-    // aplicamos una estrategia de "terminación defensiva". Marcamos el hilo como
-    // inactivo para prevenir futuras operaciones, y luego intentamos un join final.
-    // Esto evita el problema común donde pthread_join() bloquea la aplicación.
-    pthread_mutex_lock(&mutex);
-    if (monitoring_active) {
-        printf("[WARNING] Timeout al esperar terminación - marcando como inactivo\n");
-        monitoring_active = 0;  // Forzar inactivo para evitar colgamiento
-        should_stop = 1;
-        pthread_mutex_unlock(&mutex);
-        
-        // ESTRATEGIA FINAL: Intentar join pero sin depender de él para continuar.
-        // Si el hilo está realmente colgado, el timeout general de la aplicación
-        // manejará la situación. Lo importante es que nunca bloqueemos indefinidamente.
-        printf("[INFO] Intentando join final del hilo...\n");
-        pthread_join(monitoring_thread, NULL);
-        printf("[INFO] Monitoreo detenido exitosamente tras timeout\n");
-    } else {
-        pthread_mutex_unlock(&mutex);
-        printf("[INFO] Monitoreo detenido exitosamente\n");
+
+        struct timespec poll_interval = { .tv_sec = 0, .tv_nsec = 100000000 };
+        nanosleep(&poll_interval, NULL);
     }
-    
-    return 0;
+
+    pthread_mutex_lock(&mutex);
+    monitoring_active = 0;
+    pthread_mutex_unlock(&mutex);
+    printf("[WARNING] Timeout al esperar terminación - marcando como inactivo\n");
+    return -1;
 }
 
 int is_monitoring_active(void) {
