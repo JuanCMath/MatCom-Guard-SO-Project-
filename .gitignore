@@ -55,4 +55,3 @@ dkms.conf
 /matcom-guard
 /matcom-guard_debug
 *.pdf
-!MatCom Guard_Aclaraciones.pdf
