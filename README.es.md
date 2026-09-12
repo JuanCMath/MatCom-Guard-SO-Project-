@@ -25,6 +25,7 @@
 
 - [🌟 Características Destacadas](#-características-destacadas)
 - [⚡ Vista Rápida](#-vista-rápida)
+- [📸 Capturas de Pantalla](#-capturas-de-pantalla)
 - [🏗️ Arquitectura del Sistema](#️-arquitectura-del-sistema)
 - [🛠️ Instalación y Compilación](#️-instalación-y-compilación)
 - [📖 Guía de Uso](#-guía-de-uso)
@@ -54,6 +55,23 @@ make check-deps
 - 📊 **Dashboard**: Vista consolidada del estado del sistema
 - 📄 **Exportar PDF**: Reportes profesionales con un clic
 - ⚙️ **Configuración**: Archivo `matcomguard.conf` para personalización
+
+## 📸 Capturas de Pantalla
+
+| Dashboard | Monitor USB |
+|:---:|:---:|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Monitor USB](docs/screenshots/usb-monitor.png) |
+
+| Monitor de Procesos | Escáner de Puertos |
+|:---:|:---:|
+| ![Monitor de Procesos](docs/screenshots/process-monitor.png) | ![Escáner de Puertos](docs/screenshots/port-scanner.png) |
+
+<details>
+<summary>Vista de registros en vivo</summary>
+
+![Registros](docs/screenshots/logs.png)
+
+</details>
 
 ## 🏗️ Arquitectura del Sistema
 

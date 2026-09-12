@@ -25,6 +25,7 @@
 
 - [🌟 Highlighted Features](#-highlighted-features)
 - [⚡ Quick View](#-quick-view)
+- [📸 Screenshots](#-screenshots)
 - [🏗️ System Architecture](#️-system-architecture)
 - [🛠️ Installation and Build](#️-installation-and-build)
 - [📖 Usage Guide](#-usage-guide)
@@ -54,6 +55,23 @@ make check-deps
 - 📊 **Dashboard**: a consolidated view of system status
 - 📄 **Export PDF**: professional reports with one click
 - ⚙️ **Configuration**: `matcomguard.conf` file for customization
+
+## 📸 Screenshots
+
+| Dashboard | USB Monitor |
+|:---:|:---:|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![USB Monitor](docs/screenshots/usb-monitor.png) |
+
+| Process Monitor | Port Scanner |
+|:---:|:---:|
+| ![Process Monitor](docs/screenshots/process-monitor.png) | ![Port Scanner](docs/screenshots/port-scanner.png) |
+
+<details>
+<summary>Live log view</summary>
+
+![Logs](docs/screenshots/logs.png)
+
+</details>
 
 ## 🏗️ System Architecture
 
