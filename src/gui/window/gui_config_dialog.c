@@ -164,7 +164,7 @@ static void load_config_from_file() {
 }
 
 // Callback para aplicar cambios
-static void on_config_apply_clicked(GtkButton *button, gpointer data) {
+static void on_config_apply_clicked(GtkButton *button __attribute__((unused)), gpointer data __attribute__((unused))) {
     // Obtener valores de los widgets
     config.cpu_threshold = gtk_spin_button_get_value(GTK_SPIN_BUTTON(cpu_threshold_spin));
     config.mem_threshold = gtk_spin_button_get_value(GTK_SPIN_BUTTON(mem_threshold_spin));
@@ -201,7 +201,7 @@ static void on_config_apply_clicked(GtkButton *button, gpointer data) {
 }
 
 // Callback para restaurar valores por defecto
-static void on_config_defaults_clicked(GtkButton *button, gpointer data) {
+static void on_config_defaults_clicked(GtkButton *button __attribute__((unused)), gpointer data __attribute__((unused))) {
     // Crear diálogo de confirmación
     GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(config_dialog),
                                               GTK_DIALOG_MODAL,

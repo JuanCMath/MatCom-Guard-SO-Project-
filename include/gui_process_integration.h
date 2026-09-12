@@ -169,17 +169,7 @@ int update_process_monitoring_config(float cpu_threshold, float memory_threshold
 
 /**
  * @brief Función adaptadora para el callback ScanProcessesCallback de la GUI
- * 
- * Esta función permite que el sistema de callbacks existente de la GUI
- * funcione con el nuevo backend sin modificar el código de la interfaz.
- * Actúa como un wrapper que traduce las llamadas simples de la GUI
- * a las operaciones más complejas del backend.
- */
-void gui_compatible_scan_processes(void);
-
-/**
- * @brief Función adaptadora para el callback ScanProcessesCallback de la GUI
- * 
+ *
  * Esta función permite que el sistema de callbacks existente de la GUI
  * funcione con el nuevo backend sin modificar el código de la interfaz.
  * Actúa como un wrapper que traduce las llamadas simples de la GUI

@@ -225,9 +225,9 @@ void on_gui_high_cpu_alert(ProcessInfo *info) {
     
     // ⚠️ VERIFICACIÓN ADICIONAL DE SEGURIDAD: Doble chequeo de whitelist
     if (info->is_whitelisted) {
-        char debug_msg[256];
-        snprintf(debug_msg, sizeof(debug_msg), 
-                 "⚠️ ADVERTENCIA: Intento de alerta para proceso whitelisted '%s' (PID: %d)", 
+        char debug_msg[512];
+        snprintf(debug_msg, sizeof(debug_msg),
+                 "⚠️ ADVERTENCIA: Intento de alerta para proceso whitelisted '%s' (PID: %d)",
                  info->name, info->pid);
         gui_add_log_entry("PROCESS_MONITOR", "WARNING", debug_msg);
         return; // NO generar alerta para procesos whitelisted
@@ -244,8 +244,8 @@ void on_gui_high_cpu_alert(ProcessInfo *info) {
     
     // Registrar alerta en el log con nivel ALERT para destacarla
     char log_msg[512];
-    snprintf(log_msg, sizeof(log_msg), 
-             "� ALERTA CPU: Proceso '%s' (PID: %d) usando %.1f%% de CPU", 
+    snprintf(log_msg, sizeof(log_msg),
+             "🚨 ALERTA CPU: Proceso '%s' (PID: %d) usando %.1f%% de CPU",
              info->name, info->pid, info->cpu_usage);
     gui_add_log_entry("PROCESS_MONITOR", "ALERT", log_msg);
     
@@ -258,9 +258,9 @@ void on_gui_high_memory_alert(ProcessInfo *info) {
     
     // ⚠️ VERIFICACIÓN ADICIONAL DE SEGURIDAD: Doble chequeo de whitelist
     if (info->is_whitelisted) {
-        char debug_msg[256];
-        snprintf(debug_msg, sizeof(debug_msg), 
-                 "⚠️ ADVERTENCIA: Intento de alerta RAM para proceso whitelisted '%s' (PID: %d)", 
+        char debug_msg[512];
+        snprintf(debug_msg, sizeof(debug_msg),
+                 "⚠️ ADVERTENCIA: Intento de alerta RAM para proceso whitelisted '%s' (PID: %d)",
                  info->name, info->pid);
         gui_add_log_entry("PROCESS_MONITOR", "WARNING", debug_msg);
         return; // NO generar alerta para procesos whitelisted

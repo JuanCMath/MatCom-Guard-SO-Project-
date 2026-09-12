@@ -909,7 +909,7 @@ void wrap_text_for_pdf(const char *input, char *output, size_t output_size, int 
             // ================================================================
             // CASO 1: LÍNEA CORTA (CABE EN UNA LÍNEA)
             // ================================================================
-            if (line_len <= max_width) {
+            if (line_len <= (size_t)max_width) {
                 // Copiar línea completa sin modificaciones
                 if (output_pos + line_len < output_size - 1) {
                     strncpy(output + output_pos, input + line_start, line_len);
@@ -1028,7 +1028,7 @@ int count_wrapped_lines(const char *text, int max_width) {    if (!text || max_w
             // ================================================================
             // CÁLCULO MATEMÁTICO DE LÍNEAS NECESARIAS
             // ================================================================
-            if (line_len <= max_width) {
+            if (line_len <= (size_t)max_width) {
                 // Línea corta: ocupa exactamente 1 línea
                 line_count++;
             } else {

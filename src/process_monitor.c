@@ -763,7 +763,7 @@ static int read_proc_stat(pid_t pid, ProcStat *stat) {
         "%*c "      // state (campo 3)
         "%*d %*d %*d %*d %*d "  // campos 4-8
         "%*u %*u %*u %*u %*u "  // campos 9-13
-        "%lu %lu %*ld %*ld %*ld %*ld %*ld %*ld %lu",  // campos 14, 15, 16-21, 22
+        "%lu %lu %*d %*d %*d %*d %*d %*d %lu",  // campos 14, 15, 16-21, 22
         &stat->utime, &stat->stime, &stat->starttime);
 
     fclose(fp);

@@ -1,5 +1,6 @@
 #include "gui_internal.h"
 #include "gui.h"
+#include "gui_process_integration.h"
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,7 +77,7 @@ static const char* get_process_icon(float cpu_usage, float mem_usage, gboolean i
 }
 
 // Callback para cuando se selecciona un proceso
-static void on_process_selection_changed(GtkTreeSelection *selection, gpointer data) {
+static void on_process_selection_changed(GtkTreeSelection *selection, gpointer data __attribute__((unused))) {
     GtkTreeIter iter;
     GtkTreeModel *model;
     
@@ -148,7 +149,7 @@ static gboolean re_enable_process_button(gpointer data) {
 }
 
 // Callback para el botón de escaneo de procesos
-static void on_scan_processes_clicked(GtkButton *button, gpointer data) {
+static void on_scan_processes_clicked(GtkButton *button, gpointer data __attribute__((unused))) {
     printf("=== DIAGNÓSTICO PROCESO ESCANEO ===\n");
     printf("1. Botón presionado\n");
     
@@ -186,7 +187,7 @@ static void on_scan_processes_clicked(GtkButton *button, gpointer data) {
 }
 
 // Callback para terminar un proceso
-static void on_kill_process_clicked(GtkButton *button, gpointer data) {
+static void on_kill_process_clicked(GtkButton *button __attribute__((unused)), gpointer data __attribute__((unused))) {
     GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(process_tree_view));
     GtkTreeIter iter;
     GtkTreeModel *model;
@@ -436,11 +437,11 @@ GtkWidget* create_process_panel() {
 }
 
 // Función auxiliar para formatear la columna de CPU
-static void format_cpu_column(GtkTreeViewColumn *column,
+static void format_cpu_column(GtkTreeViewColumn *column __attribute__((unused)),
                              GtkCellRenderer *renderer,
                              GtkTreeModel *model,
                              GtkTreeIter *iter,
-                             gpointer data) {
+                             gpointer data __attribute__((unused))) {
     gfloat cpu_usage;
     gtk_tree_model_get(model, iter, COL_PROC_CPU_USAGE, &cpu_usage, -1);
     
@@ -450,11 +451,11 @@ static void format_cpu_column(GtkTreeViewColumn *column,
 }
 
 // Función auxiliar para formatear la columna de memoria
-static void format_mem_column(GtkTreeViewColumn *column,
+static void format_mem_column(GtkTreeViewColumn *column __attribute__((unused)),
                              GtkCellRenderer *renderer,
                              GtkTreeModel *model,
                              GtkTreeIter *iter,
-                             gpointer data) {
+                             gpointer data __attribute__((unused))) {
     gfloat mem_usage;
     gtk_tree_model_get(model, iter, COL_PROC_MEM_USAGE, &mem_usage, -1);
     
@@ -536,8 +537,8 @@ void gui_update_process(GUIProcess *process) {
       // Log del evento si es sospechoso Y NO está en whitelist
     if ((process->is_suspicious || process->cpu_usage > cpu_threshold || process->mem_usage > mem_threshold) 
         && !process->is_whitelisted) {
-        char log_msg[256];
-        snprintf(log_msg, sizeof(log_msg), 
+        char log_msg[512];
+        snprintf(log_msg, sizeof(log_msg),
                 "Proceso '%s' (PID: %d) - CPU: %.1f%%, RAM: %.1f%% - Estado: %s",
                 process->name, process->pid, process->cpu_usage, process->mem_usage, status);
         gui_add_log_entry("PROCESS_MONITOR", 
@@ -546,8 +547,8 @@ void gui_update_process(GUIProcess *process) {
     } else if ((process->is_suspicious || process->cpu_usage > cpu_threshold || process->mem_usage > mem_threshold) 
                && process->is_whitelisted) {
         // Log informativo para procesos whitelisted con alto uso
-        char log_msg[256];
-        snprintf(log_msg, sizeof(log_msg), 
+        char log_msg[512];
+        snprintf(log_msg, sizeof(log_msg),
                 "✅ Proceso whitelisted '%s' (PID: %d) - CPU: %.1f%%, RAM: %.1f%% - Estado: %s",
                 process->name, process->pid, process->cpu_usage, process->mem_usage, status);
         gui_add_log_entry("PROCESS_MONITOR", "INFO", log_msg);

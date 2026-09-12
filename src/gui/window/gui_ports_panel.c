@@ -177,7 +177,7 @@ static void on_quick_scan_clicked(GtkButton *button __attribute__((unused)), gpo
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(end_port_spin), 1024.0);
     
     // Iniciar escaneo
-    on_scan_ports_clicked(scan_ports_button, NULL);
+    on_scan_ports_clicked(GTK_BUTTON(scan_ports_button), NULL);
 }
 
 // Callback para el botón de escaneo completo
@@ -201,7 +201,7 @@ static void on_full_scan_clicked(GtkButton *button __attribute__((unused)), gpoi
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(end_port_spin), 65535.0);
         
         // Iniciar escaneo
-        on_scan_ports_clicked(scan_ports_button, NULL);
+        on_scan_ports_clicked(GTK_BUTTON(scan_ports_button), NULL);
     }
 }
 
