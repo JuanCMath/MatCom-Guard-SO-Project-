@@ -26,6 +26,11 @@ int num_procesos_activos = 0;
 static pthread_t monitoring_thread;
 static volatile int monitoring_active = 0;
 static volatile int should_stop = 0;
+// Se activa cuando stop_monitoring() agota su timeout de 3s y el hilo de
+// monitoreo queda "huérfano" (detached) en vez de unido; cleanup_monitoring()
+// lo usa para evitar destruir el mutex/estado compartido mientras ese hilo
+// pueda seguir vivo.
+static volatile int monitoring_thread_leaked = 0;
 
 // Callbacks opcionales para eventos
 static ProcessCallbacks *event_callbacks = NULL;
@@ -444,17 +449,19 @@ static void* monitoring_thread_function(void* arg) {
     while (!should_stop) {
         monitor_processes();
         int active_count = num_procesos_activos;
+        void (*status_cb)(const ProgressUpdate *update) =
+            event_callbacks ? event_callbacks->on_status_update : NULL;
 
         if (should_stop) {
             break;
         }
 
         pthread_mutex_unlock(&mutex);
-        if (event_callbacks && event_callbacks->on_status_update) {
+        if (status_cb) {
             char phase[128];
             snprintf(phase, sizeof(phase), "Monitoreando... %d procesos activos", active_count);
             ProgressUpdate update = { .phase = phase, .current = 0, .total = 0 };
-            event_callbacks->on_status_update(&update);
+            status_cb(&update);
         }
         pthread_mutex_lock(&mutex);
 
@@ -491,7 +498,8 @@ int start_monitoring(void) {
     
     should_stop = 0;
     monitoring_active = 1;
-    
+    monitoring_thread_leaked = 0;
+
     int result = pthread_create(&monitoring_thread, NULL, monitoring_thread_function, NULL);
     if (result != 0) {
         monitoring_active = 0;
@@ -561,9 +569,21 @@ int stop_monitoring(void) {
 
     pthread_mutex_lock(&mutex);
     monitoring_active = 0;
+    // El hilo no respondió a tiempo y puede seguir vivo (p. ej. bloqueado en
+    // monitor_processes() o en un callback lento fuera del mutex). Lo separamos
+    // (detach) para que el sistema operativo reclame sus recursos cuando
+    // finalmente termine, en vez de dejar un handle de hilo sin unir. Nunca se
+    // debe llamar pthread_join sobre monitoring_thread después de esto.
+    pthread_detach(monitoring_thread);
+    monitoring_thread_leaked = 1;
     pthread_mutex_unlock(&mutex);
     printf("[WARNING] Timeout al esperar terminación - marcando como inactivo\n");
-    return -1;
+    // Se mantiene el contrato original de stop_monitoring(): 0 indica que la
+    // solicitud de detención fue procesada (incluso si el hilo quedó huérfano),
+    // 1 solo cuando el monitoreo no estaba activo. Los llamadores existentes
+    // (p. ej. la GUI) dependen de este valor para decidir su propio flujo de
+    // limpieza tras un stop "exitoso".
+    return 0;
 }
 
 int is_monitoring_active(void) {
@@ -649,7 +669,24 @@ void cleanup_monitoring(void) {
     
     // PASO 1: Detener hilos de forma segura usando la función mejorada con timeout
     stop_monitoring();
-    
+
+    // Si stop_monitoring() agotó su timeout de 3s, el hilo de monitoreo pudo
+    // quedar vivo (ya detached, ver stop_monitoring()). En ese caso NO es seguro
+    // destruir el mutex ni liberar el estado compartido (whitelist,
+    // event_callbacks, lista de procesos) porque el hilo huérfano podría seguir
+    // leyéndolos/escribiéndolos en cualquier momento, lo que sería un use-after-free.
+    // Como cleanup_monitoring() se invoca durante el apagado de la aplicación,
+    // preferimos "perder" (leak) deliberadamente ese estado y dejar que el
+    // sistema operativo lo reclame al terminar el proceso, en vez de arriesgar
+    // un use-after-free o bloquear un mutex ya destruido.
+    if (monitoring_thread_leaked) {
+        printf("[WARNING] El hilo de monitoreo no terminó a tiempo; omitiendo liberación de "
+               "recursos compartidos para evitar condiciones de carrera con el hilo huérfano.\n");
+        cleanup_stale_temp_files();
+        cleanup_temp_files();
+        return;
+    }
+
     pthread_mutex_lock(&mutex);
     clear_process_list();
     
