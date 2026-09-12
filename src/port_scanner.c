@@ -40,7 +40,7 @@ static const ServiceMapping common_services[] = {
  * @param buffer_size: Tamaño del buffer
  * @return int: 1 si es un servicio común, 0 si es sospechoso o desconocido
  */
-int get_service_name(int port, char *service_name, size_t buffer_size) {
+int get_port_service_name(int port, char *service_name, size_t buffer_size) {
     for (int i = 0; common_services[i].service != NULL; i++) {
         if (common_services[i].port == port) {
             snprintf(service_name, buffer_size, "%s", common_services[i].service);
@@ -160,7 +160,7 @@ static int scan_port_range(int start_port, int end_port, ScanResult *result) {
             result->open_ports++;
             
             // Obtener información del servicio
-            get_service_name(port, port_info->service_name, 
+            get_port_service_name(port, port_info->service_name,
                            sizeof(port_info->service_name));
             
             // Determinar si es sospechoso
@@ -301,7 +301,7 @@ int scan_specific_port(int port) {
     
     if (is_open) {
         char service_name[64];
-        get_service_name(port, service_name, sizeof(service_name));
+        get_port_service_name(port, service_name, sizeof(service_name));
         int suspicious = is_port_suspicious(port, service_name);
         
         printf("Puerto %d/tcp: ABIERTO\n", port);

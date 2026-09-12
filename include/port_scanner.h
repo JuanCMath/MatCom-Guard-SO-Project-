@@ -54,7 +54,7 @@ typedef struct {
  * Obtiene el nombre del servicio asociado a un puerto.
  * @return 1 si es un servicio común/esperado, 0 si es desconocido.
  */
-int get_service_name(int port, char *service_name, size_t buffer_size);
+int get_port_service_name(int port, char *service_name, size_t buffer_size);
 
 /**
  * Determina si un puerto es sospechoso según los mismos criterios que usa
