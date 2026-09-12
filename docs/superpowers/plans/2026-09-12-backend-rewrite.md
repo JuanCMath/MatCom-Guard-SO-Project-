@@ -552,7 +552,7 @@ git commit -m "refactor: expose port_scanner's service/suspicion classification"
 - Create: `tests/unit/benchmark_port_scan.c`
 
 **Interfaces:**
-- Consumes: `ProgressUpdate`/`ProgressCallback` (Task 1), `ThreadPool`/`threadpool_create`/`threadpool_submit`/`threadpool_wait`/`threadpool_destroy` (Task 2), `get_service_name`/`is_port_suspicious` (Task 3)
+- Consumes: `ProgressUpdate`/`ProgressCallback` (Task 1), `ThreadPool`/`threadpool_create`/`threadpool_submit`/`threadpool_wait`/`threadpool_destroy` (Task 2), `get_port_service_name`/`is_port_suspicious` (Task 3 — renamed from `get_service_name` during Task 3's fix loop; see plan ledger)
 - Produces: `int scan_ports_range(int start_port, int end_port, int num_threads, ProgressCallback cb, void *user_data, volatile sig_atomic_t *cancel, ScanResult *out)`
 
 - [ ] **Step 1: Write the failing test**
@@ -671,7 +671,7 @@ static void scan_port_task(void *arg) {
         info->service_name[0] = '\0';
 
         if (info->is_open) {
-            get_service_name(port, info->service_name, sizeof(info->service_name));
+            get_port_service_name(port, info->service_name, sizeof(info->service_name));
             info->is_suspicious = is_port_suspicious(port, info->service_name);
         }
 
