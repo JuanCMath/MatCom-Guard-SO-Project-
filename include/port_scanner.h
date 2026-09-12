@@ -47,6 +47,22 @@ typedef struct {
 } ServiceMapping;
 
 // ============================================================================
+// CLASIFICACIÓN DE PUERTOS (antes privada de port_scanner.c)
+// ============================================================================
+
+/**
+ * Obtiene el nombre del servicio asociado a un puerto.
+ * @return 1 si es un servicio común/esperado, 0 si es desconocido.
+ */
+int get_service_name(int port, char *service_name, size_t buffer_size);
+
+/**
+ * Determina si un puerto es sospechoso según los mismos criterios que usa
+ * el escaneo de puertos internamente.
+ */
+int is_port_suspicious(int port, const char *service_name);
+
+// ============================================================================
 // FUNCIONES PÚBLICAS DE ESCANEO DE PUERTOS
 // ============================================================================
 

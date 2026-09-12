@@ -68,7 +68,7 @@ static KnownService known_services[] = {
 };
 
 // Función para obtener información del servicio por puerto
-static const char* get_service_name(int port) {
+static const char* gui_get_service_name(int port) {
     for (int i = 0; known_services[i].service != NULL; i++) {
         if (known_services[i].port == port) {
             return known_services[i].service;
@@ -81,7 +81,7 @@ static const char* get_service_name(int port) {
 static gboolean is_suspicious_port(int port, const char *state) {
     // Puerto abierto sin servicio conocido
     if (strcmp(state, "Abierto") == 0) {
-        const char *service = get_service_name(port);
+        const char *service = gui_get_service_name(port);
         if (strcmp(service, "Desconocido") == 0 && port > 1024) {
             return TRUE;
         }
@@ -506,7 +506,7 @@ void gui_update_port(GUIPort *port) {
     
     // Determinar estado visual
     const char *state = strcmp(port->status, "open") == 0 ? "Abierto" : "Cerrado";
-    const char *service = port->service[0] ? port->service : get_service_name(port->port);
+    const char *service = port->service[0] ? port->service : gui_get_service_name(port->port);
     const char *protocol = "TCP";
     
     // Determinar seguridad y color

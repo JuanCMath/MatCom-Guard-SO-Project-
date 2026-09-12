@@ -34,13 +34,13 @@ static const ServiceMapping common_services[] = {
 
 /**
  * Obtiene el nombre del servicio asociado a un puerto
- * 
+ *
  * @param port: Número del puerto
  * @param service_name: Buffer donde se almacenará el nombre del servicio
  * @param buffer_size: Tamaño del buffer
  * @return int: 1 si es un servicio común, 0 si es sospechoso o desconocido
  */
-static int get_service_name(int port, char *service_name, size_t buffer_size) {
+int get_service_name(int port, char *service_name, size_t buffer_size) {
     for (int i = 0; common_services[i].service != NULL; i++) {
         if (common_services[i].port == port) {
             snprintf(service_name, buffer_size, "%s", common_services[i].service);
@@ -55,12 +55,12 @@ static int get_service_name(int port, char *service_name, size_t buffer_size) {
 
 /**
  * Determina si un puerto es sospechoso basado en criterios de seguridad
- * 
+ *
  * @param port: Número del puerto
  * @param service_name: Nombre del servicio asociado
  * @return int: 1 si es sospechoso, 0 si es normal
  */
-static int is_port_suspicious(int port, const char *service_name) {
+int is_port_suspicious(int port, const char *service_name) {
     // Puertos conocidos como backdoors
     if (port == 31337 || port == 4444 || port == 6667) {
         return 1;
