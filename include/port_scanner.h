@@ -10,6 +10,9 @@
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <time.h>
+#include <signal.h>       // sig_atomic_t
+#include "progress.h"
+#include "threadpool.h"
 
 #define SEPARATOR "=====================================\n"
 
@@ -86,6 +89,19 @@ int scan_common_ports(void);
  * @return int: 1 si está abierto, 0 si cerrado, -1 si error
  */
 int scan_specific_port(int port);
+
+/**
+ * Escanea un rango de puertos usando `num_threads` hilos trabajadores.
+ * `cb`/`user_data` son opcionales (pueden ser NULL) y se invocan a medida
+ * que cada puerto termina de escanearse — pueden llegar desde cualquier
+ * hilo trabajador. `cancel`, si no es NULL, permite pedir la interrupción
+ * del escaneo desde otro hilo (se revisa entre puerto y puerto).
+ * @return 0 si tuvo éxito, -1 si los parámetros son inválidos o falló la
+ *         reserva de memoria/hilos.
+ */
+int scan_ports_range(int start_port, int end_port, int num_threads,
+                      ProgressCallback cb, void *user_data,
+                      volatile sig_atomic_t *cancel, ScanResult *out);
 
 // ============================================================================
 // FUNCIONES AUXILIARES

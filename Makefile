@@ -7,6 +7,7 @@ LIBS = -lcrypto -lpthread -ludev
 TARGET = matcom-guard
 SRC = src/main.c \
 		src/port_scanner.c \
+		src/threadpool.c \
 		src/process_monitor.c \
 		src/device_monitor.c \
 		src/gui/gui_main.c \
