@@ -49,7 +49,7 @@ static void *worker_loop(void *arg) {
         pthread_mutex_lock(&pool->lock);
         pool->pending_tasks--;
         if (pool->pending_tasks == 0) {
-            pthread_cond_signal(&pool->all_done);
+            pthread_cond_broadcast(&pool->all_done);
         }
         pthread_mutex_unlock(&pool->lock);
     }
