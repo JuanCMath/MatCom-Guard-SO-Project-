@@ -1240,6 +1240,11 @@ git commit -m "feat: skip re-hashing unchanged USB files, hash changed files in 
 Create `tests/unit/test_process_shutdown.c`:
 
 ```c
+// _POSIX_C_SOURCE se necesita para exponer clock_gettime()/CLOCK_MONOTONIC/
+// struct timespec bajo `-std=c99` estricto (glibc los oculta si no se pide
+// explícitamente soporte POSIX cuando se compila en modo ISO C99 puro) —
+// ver el mismo fix aplicado en tests/unit/benchmark_port_scan.c (Task 4).
+#define _POSIX_C_SOURCE 199309L
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>
@@ -1425,9 +1430,9 @@ git commit -m "perf: replace polling shutdown with condition-variable wakeup in 
 **Interfaces:**
 - Consumes: everything from Tasks 1–6
 
-- [ ] **Step 1: Add `threadpool.c` to the main build**
+- [x] **Step 1: Add `threadpool.c` to the main build — already done in Task 4**
 
-In `Makefile`, add `src/threadpool.c` to `SRC` (right after `src/port_scanner.c` \):
+Task 4 discovered that the main build fails to link as soon as `port_scanner.c` calls into the thread pool (undefined references to `threadpool_create`/`submit`/`wait`/`destroy`), so it added `src/threadpool.c` to `SRC` itself rather than leaving the main build broken until this task. Confirm it's there (it should already read exactly like this) and do NOT add it again:
 
 ```makefile
 SRC = src/main.c \
