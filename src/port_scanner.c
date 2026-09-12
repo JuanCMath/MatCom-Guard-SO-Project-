@@ -202,7 +202,11 @@ int scan_ports_range(int start_port, int end_port, int num_threads,
     }
 
     int total_ports = end_port - start_port + 1;
-    PortInfo *ports = malloc(total_ports * sizeof(PortInfo));
+    // calloc (no malloc): si la cancelación corta el escaneo antes de
+    // tiempo, los slots de puertos nunca tomados quedan en cero
+    // (port=0, is_open=0, is_suspicious=0, service_name="") en vez de
+    // memoria indeterminada — seguro de iterar igual.
+    PortInfo *ports = calloc(total_ports, sizeof(PortInfo));
     if (!ports) {
         return -1;
     }
@@ -229,8 +233,20 @@ int scan_ports_range(int start_port, int end_port, int num_threads,
 
     // Cada tarea recorre la cola compartida de puertos hasta agotarla —
     // alcanza con una tarea por hilo, no una por puerto.
+    int submitted = 0;
     for (int i = 0; i < num_threads; i++) {
-        threadpool_submit(pool, scan_port_task, &job);
+        if (threadpool_submit(pool, scan_port_task, &job) == 0) {
+            submitted++;
+        }
+    }
+    if (submitted == 0) {
+        // Ninguna tarea pudo encolarse (p.ej. fallo de reserva de memoria
+        // dentro del pool): no hay quién escanee, así que es un fallo real,
+        // no un "éxito" con cero puertos abiertos.
+        threadpool_destroy(pool);
+        pthread_mutex_destroy(&job.lock);
+        free(ports);
+        return -1;
     }
 
     threadpool_wait(pool);
