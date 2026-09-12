@@ -1,4 +1,5 @@
 #define _GNU_SOURCE  // Para strdup y strnlen
+#include <pthread.h>
 #include <device_monitor.h>
 
 // ============================================================================
@@ -192,29 +193,109 @@ char* get_file_extension(const char *filename) {
     return strdup(dot + 1);
 }
 
+int device_monitor_file_unchanged(const FileInfo *previous, off_t size, time_t mtime) {
+    if (!previous) {
+        return 0;
+    }
+    return previous->size == size && previous->last_modified == mtime;
+}
+
+const FileInfo* device_monitor_find_file(const DeviceSnapshot *snapshot, const char *path) {
+    if (!snapshot || !path) {
+        return NULL;
+    }
+    // Búsqueda lineal: el tamaño típico de un dispositivo (cientos/miles de
+    // archivos) hace que esto sea mucho más barato que el hash SHA-256 que
+    // reemplaza — no vale la pena una estructura más compleja acá.
+    for (int i = 0; i < snapshot->file_count; i++) {
+        if (snapshot->files[i] && snapshot->files[i]->path &&
+            strcmp(snapshot->files[i]->path, path) == 0) {
+            return snapshot->files[i];
+        }
+    }
+    return NULL;
+}
+
+int count_files_recursive(const char *dir_path) {
+    DIR *dir = opendir(dir_path);
+    if (!dir) {
+        return 0;
+    }
+
+    int count = 0;
+    struct dirent *entry;
+    struct stat file_stat;
+    char full_path[1024];
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+        snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
+
+        if (lstat(full_path, &file_stat) != 0) {
+            continue;
+        }
+        if (S_ISLNK(file_stat.st_mode)) {
+            continue;
+        }
+
+        if (S_ISDIR(file_stat.st_mode)) {
+            count += count_files_recursive(full_path);
+        } else if (S_ISREG(file_stat.st_mode)) {
+            count++;
+        }
+    }
+
+    closedir(dir);
+    return count;
+}
+
+typedef struct {
+    char full_path[1024];
+    FileInfo *file_info;
+} HashTask;
+
+static void hash_file_task(void *arg) {
+    HashTask *task = (HashTask *)arg;
+    if (calculate_sha256(task->full_path, task->file_info->sha256_hash) != 0) {
+        strcpy(task->file_info->sha256_hash, "ERROR_CALCULATING_HASH");
+    }
+    free(task);
+}
+
 /**
  * Escanea recursivamente un directorio y almacena información de archivos
- * 
+ *
  * @param snapshot: Puntero al snapshot donde almacenar la información
  * @param dir_path: Ruta del directorio a escanear
  * @return int: 0 si es exitoso, -1 si hay error
  */
-int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path) {
+int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path,
+                              const DeviceSnapshot *previous_snapshot,
+                              int total_files,
+                              ThreadPool *hash_pool,
+                              ProgressCallback cb, void *user_data,
+                              volatile sig_atomic_t *cancel) {
     DIR *dir = opendir(dir_path);
     if (!dir) {
         return -1;
     }
-    
+
     struct dirent *entry;
     struct stat file_stat;
     char full_path[1024];
-    
+
     while ((entry = readdir(dir)) != NULL) {
-        // Saltar directorios especiales
+        if (cancel && *cancel) {
+            closedir(dir);
+            return 0;
+        }
+
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
-        
+
         snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
 
         // lstat (no stat) para no seguir symlinks: un enlace simbólico que
@@ -227,7 +308,8 @@ int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path) {
             continue; // No seguir enlaces simbólicos
         } else if (S_ISDIR(file_stat.st_mode)) {
             // Es un directorio, escanear recursivamente
-            scan_directory_recursive(snapshot, full_path);
+            scan_directory_recursive(snapshot, full_path, previous_snapshot,
+                                      total_files, hash_pool, cb, user_data, cancel);
         } else if (S_ISREG(file_stat.st_mode)) {
             // Es un archivo regular, almacenar información
 
@@ -259,21 +341,41 @@ int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path) {
             file_info->permissions = file_stat.st_mode;
             file_info->last_modified = file_stat.st_mtime;
             file_info->last_accessed = file_stat.st_atime;
-            
-            // Calcular hash SHA-256
-            if (calculate_sha256(full_path, file_info->sha256_hash) != 0) {
+
+            const FileInfo *previous = device_monitor_find_file(previous_snapshot, full_path);
+            if (device_monitor_file_unchanged(previous, file_info->size, file_info->last_modified)) {
+                strncpy(file_info->sha256_hash, previous->sha256_hash, sizeof(file_info->sha256_hash) - 1);
+                file_info->sha256_hash[sizeof(file_info->sha256_hash) - 1] = '\0';
+            } else if (hash_pool) {
+                file_info->sha256_hash[0] = '\0';  // se completa cuando la tarea corre en el pool
+                HashTask *task = malloc(sizeof(HashTask));
+                if (task) {
+                    strncpy(task->full_path, full_path, sizeof(task->full_path) - 1);
+                    task->full_path[sizeof(task->full_path) - 1] = '\0';
+                    task->file_info = file_info;
+                    threadpool_submit(hash_pool, hash_file_task, task);
+                } else if (calculate_sha256(full_path, file_info->sha256_hash) != 0) {
+                    strcpy(file_info->sha256_hash, "ERROR_CALCULATING_HASH");
+                }
+            } else if (calculate_sha256(full_path, file_info->sha256_hash) != 0) {
                 strcpy(file_info->sha256_hash, "ERROR_CALCULATING_HASH");
             }
-            
+
             // Agregar a la lista
             snapshot->files[snapshot->file_count] = file_info;
             snapshot->file_count++;
-            
-            printf("Archivo escaneado: %s (Tamaño: %ld bytes, Hash: %.16s...)\n", 
-                   entry->d_name, file_stat.st_size, file_info->sha256_hash);
+
+            if (cb) {
+                ProgressUpdate update = {
+                    .phase = "Analizando archivos",
+                    .current = snapshot->file_count,
+                    .total = total_files
+                };
+                cb(&update, user_data);
+            }
         }
     }
-    
+
     closedir(dir);
     return 0;
 }
@@ -284,75 +386,84 @@ int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path) {
  * @param device_name: Nombre del dispositivo
  * @return DeviceSnapshot*: Puntero al snapshot creado
  */
-DeviceSnapshot* create_device_snapshot(const char *device_name) {
+DeviceSnapshot* create_device_snapshot_ex(const char *device_name,
+                                           const DeviceSnapshot *previous_snapshot,
+                                           ThreadPool *hash_pool,
+                                           ProgressCallback cb, void *user_data,
+                                           volatile sig_atomic_t *cancel) {
     if (!device_name) {
         printf("Error: device_name es NULL\n");
         return NULL;
     }
-    
-    // Validar que device_name sea una cadena válida antes de proceder
+
     size_t name_len = strnlen(device_name, 256);
     if (name_len == 0 || name_len >= 256) {
         printf("Error: device_name inválido (longitud: %zu)\n", name_len);
         return NULL;
     }
-    
-    // Validar que device_name contenga solo caracteres válidos para nombres de dispositivos
+
     for (size_t i = 0; i < name_len; i++) {
         char c = device_name[i];
-        if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || 
+        if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
               (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.')) {
             printf("Error: device_name contiene caracteres inválidos\n");
             return NULL;
         }
     }
-    
+
     DeviceSnapshot *snapshot = malloc(sizeof(DeviceSnapshot));
     if (!snapshot) {
         printf("Error: No se pudo asignar memoria para snapshot\n");
         return NULL;
     }
-    
-    // Usar malloc + strncpy en lugar de strdup para mayor control
+
     snapshot->device_name = malloc(name_len + 1);
     if (!snapshot->device_name) {
         printf("Error: No se pudo asignar memoria para device_name\n");
         free(snapshot);
         return NULL;
     }
-    
-    // Copiar de forma segura y asegurar terminación nula
+
     strncpy(snapshot->device_name, device_name, name_len);
     snapshot->device_name[name_len] = '\0';
-    
-    snapshot->files = malloc(100 * sizeof(FileInfo*)); // Capacidad inicial
+
+    snapshot->files = malloc(100 * sizeof(FileInfo*));
     if (!snapshot->files) {
         printf("Error: No se pudo asignar memoria para files array\n");
         free(snapshot->device_name);
         free(snapshot);
         return NULL;
     }
-    
+
     snapshot->file_count = 0;
     snapshot->capacity = 100;
     snapshot->snapshot_time = time(NULL);
-    
-    // Construir la ruta del dispositivo
+
     char device_path[512];
     snprintf(device_path, sizeof(device_path), "/media/%s", device_name);
-    
+
     printf("Creando snapshot del dispositivo: %s\n", device_name);
     printf("Escaneando directorio: %s\n", device_path);
-    
-    // Escanear el dispositivo
-    if (scan_directory_recursive(snapshot, device_path) != 0) {
+
+    int total_files = count_files_recursive(device_path);
+
+    if (scan_directory_recursive(snapshot, device_path, previous_snapshot,
+                                  total_files, hash_pool, cb, user_data, cancel) != 0) {
         printf("Error al escanear el dispositivo %s\n", device_name);
     }
-    
+
+    if (hash_pool) {
+        threadpool_wait(hash_pool);
+    }
+
     printf("Snapshot completado: %d archivos encontrados\n", snapshot->file_count);
     printf("---\n");
-    
+
     return snapshot;
+}
+
+DeviceSnapshot* create_device_snapshot(const char *device_name) {
+    return create_device_snapshot_ex(device_name, NULL, NULL, NULL, NULL, NULL);
 }
 
 /**

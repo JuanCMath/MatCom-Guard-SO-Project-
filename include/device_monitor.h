@@ -11,6 +11,9 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <time.h>
+#include <signal.h>       // sig_atomic_t
+#include "progress.h"
+#include "threadpool.h"
 
 // Estructura para almacenar información de dispositivos conectados
 typedef struct {
@@ -47,8 +50,49 @@ void free_device_list(DeviceList *device_list);
 // Funciones para manejo de archivos y snapshots
 int calculate_sha256(const char *filepath, char *hash_output);
 char* get_file_extension(const char *filename);
-int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path);
+/** Cuenta archivos regulares bajo dir_path (recursivo, sin calcular hashes). */
+int count_files_recursive(const char *dir_path);
+
+/**
+ * true si `previous` describe exactamente el mismo tamaño y fecha de
+ * modificación que los valores actuales — en ese caso no hace falta
+ * recalcular el hash SHA-256. `previous` puede ser NULL (no hay registro
+ * anterior, p.ej. archivo nuevo o primer snapshot del dispositivo).
+ */
+int device_monitor_file_unchanged(const FileInfo *previous, off_t size, time_t mtime);
+
+/** Busca un archivo por ruta exacta dentro de un snapshot. NULL si no está o si snapshot es NULL. */
+const FileInfo* device_monitor_find_file(const DeviceSnapshot *snapshot, const char *path);
+
+/**
+ * Recorre dir_path recursivamente y agrega cada archivo regular a
+ * `snapshot`. Si `previous_snapshot` tiene un registro con el mismo path,
+ * tamaño y fecha de modificación, reutiliza su hash en vez de
+ * recalcularlo; si no, y `hash_pool` no es NULL, encola el cálculo del
+ * hash en el pool (concurrente); si `hash_pool` es NULL, lo calcula en el
+ * hilo actual. `total_files` (de `count_files_recursive`) y `cb` permiten
+ * reportar progreso determinado; `cancel` permite interrumpir el recorrido.
+ */
+int scan_directory_recursive(DeviceSnapshot *snapshot, const char *dir_path,
+                              const DeviceSnapshot *previous_snapshot,
+                              int total_files,
+                              ThreadPool *hash_pool,
+                              ProgressCallback cb, void *user_data,
+                              volatile sig_atomic_t *cancel);
 DeviceSnapshot* create_device_snapshot(const char *device_name);
+
+/**
+ * Igual que create_device_snapshot(), pero permite reusar el hash de
+ * archivos sin cambios (`previous_snapshot`, puede ser NULL), calcular
+ * hashes en paralelo (`hash_pool`, puede ser NULL para calcular en el
+ * hilo actual), reportar progreso (`cb`/`user_data`, pueden ser NULL) y
+ * cancelar el escaneo (`cancel`, puede ser NULL).
+ */
+DeviceSnapshot* create_device_snapshot_ex(const char *device_name,
+                                           const DeviceSnapshot *previous_snapshot,
+                                           ThreadPool *hash_pool,
+                                           ProgressCallback cb, void *user_data,
+                                           volatile sig_atomic_t *cancel);
 void free_device_snapshot(DeviceSnapshot *snapshot);
 int validate_device_snapshot(const DeviceSnapshot *snapshot);
 
